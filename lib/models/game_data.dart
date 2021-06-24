@@ -23,14 +23,14 @@ class GameData {
           DateTime.now(),
           DateTime.now(),
           [TeamData("Team11", 0), TeamData("Team12", 1)],
-          [EditData("Added one poitn to Team12", DateTime.now())]
+          [EditData("Added one point to Team12", DateTime.now())]
       ),
       GameData(
           "Game2",
           DateTime.now(),
           DateTime.now(),
           [TeamData("Team21", 1), TeamData("Team22", 2)],
-          [EditData("Added one poitn to Team22", DateTime.now())]
+          [EditData("Added one point to Team22", DateTime.now())]
       ),
     ];
   }
