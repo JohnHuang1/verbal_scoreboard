@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
+import 'package:verbal_scoreboard/shared/style.dart';
+
+import 'game/game_page.dart';
+import 'game_list/list_page.dart';
 
 
 void main() {
@@ -18,14 +22,14 @@ class MyApp extends StatelessWidget {
 
   RouteFactory _routeFactory(){
     return (settings) {
-      dynamic arguments = settings.arguments;
+      Map<String, dynamic> arguments = settings.arguments;
       Widget screen;
       switch(settings.name){
         case ListPageRoute:
           screen = ListPage();
           break;
         case GamePageRoute:
-          screen = GamePage();
+          screen = GamePage(arguments['id']);
           break;
         default:
           return null;
