@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:verbal_scoreboard/game/game_widget.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 
 class GamePage extends StatelessWidget {
@@ -15,13 +16,7 @@ class GamePage extends StatelessWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Text(
-              "Scores and stuff",
-            ),
-          )
-        ],
+        children: [GameWidget(data)],
       ),
     );
   }
