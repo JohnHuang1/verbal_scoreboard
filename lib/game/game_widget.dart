@@ -11,7 +11,10 @@ class GameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [ScoreWidget(teams: data.teams), ControlWidget()],
+      children: [
+        ScoreWidget(teams: data.teams),
+        ControlWidget(teams: data.teams)
+      ],
     );
   }
 }

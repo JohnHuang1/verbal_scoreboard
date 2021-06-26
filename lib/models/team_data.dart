@@ -1,6 +1,6 @@
 class TeamData {
   final String name;
-  final int score;
+  int score;
 
   TeamData(this.name, this.score);
 }

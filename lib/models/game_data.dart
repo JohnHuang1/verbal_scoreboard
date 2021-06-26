@@ -37,10 +37,10 @@ class GameData {
     ];
   }
 
-  static GameData fetchByID(int id){
+  static GameData fetchByID(int id) {
     List<GameData> data = fetchAll();
-    for(GameData d in data){
-      if(d.id == id){
+    for (GameData d in data) {
+      if (d.id == id) {
         return d;
       }
     }
