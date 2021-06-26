@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:verbal_scoreboard/models/game_data.dart';
+import 'package:verbal_scoreboard/models/team_data.dart';
+import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
 import 'package:verbal_scoreboard/shared/style.dart';
 
@@ -6,7 +11,17 @@ import 'game/game_page.dart';
 import 'game_list/list_page.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(GameDataAdapter());
+  Hive.registerAdapter(TeamDataAdapter());
+  Hive.registerAdapter(EditDataAdapter());
+
+  await Hive.openBox<GameData>(GameDataBoxString);
+
   runApp(MyApp());
 }
 

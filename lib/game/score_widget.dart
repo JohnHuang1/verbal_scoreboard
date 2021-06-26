@@ -1,32 +1,10 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-import 'package:verbal_scoreboard/models/team_data.dart';
+import 'package:verbal_scoreboard/models/game_data.dart';
 
-class ScoreWidget extends StatefulWidget {
-  final List<TeamData> teams;
-  Function callback;
-  ScoreWidget({Key key, this.teams, this.callback}) : super(key: key);
-
-  @override
-  _ScoreWidgetState createState() => _ScoreWidgetState(teams);
-
-  refresh(List<TeamData> teams) {
-    _ScoreWidgetState(teams).callback(teams);
-  }
-}
-
-class _ScoreWidgetState extends State<ScoreWidget> {
-  List<TeamData> teams;
-
-  void callback(List<TeamData> teams) {
-    setState(() {
-      this.teams = teams;
-    });
-  }
-
-  _ScoreWidgetState(this.teams);
-  final double boxSize = 100.0;
+class ScoreWidget extends StatelessWidget {
+  final double boxSize = 100;
+  final GameData _game;
+  ScoreWidget(this._game, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +14,11 @@ class _ScoreWidgetState extends State<ScoreWidget> {
         Column(
           children: [
             Center(
-              child: Text(teams[0].name),
+              child: Text(_game.teams[0].name),
             ),
             Container(
               child: Center(
-                  child: Text(teams[0].score.toString(),
+                  child: Text(_game.teams[0].score.toString(),
                       style: TextStyle(fontSize: 50))),
               height: boxSize,
               width: boxSize,
@@ -60,11 +38,11 @@ class _ScoreWidgetState extends State<ScoreWidget> {
         Column(
           children: [
             Center(
-              child: Text(teams[1].name),
+              child: Text(_game.teams[1].name),
             ),
             Container(
               child: Center(
-                  child: Text(teams[1].score.toString(),
+                  child: Text(_game.teams[1].score.toString(),
                       style: TextStyle(fontSize: 50))),
               height: boxSize,
               width: boxSize,
@@ -76,3 +54,4 @@ class _ScoreWidgetState extends State<ScoreWidget> {
     );
   }
 }
+

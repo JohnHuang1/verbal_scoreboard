@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
+
+import '../boxes.dart';
 
 class ListPage extends StatefulWidget {
   ListPage({Key key}) : super(key: key);
@@ -13,17 +17,22 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   TextEditingController _newGameTextFieldController = TextEditingController();
-  List<GameData> games = GameData.fetchAll();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("List Page"),
+        title: Center(
+          child: Text("List Page"),
+        ),
       ),
-      body: ListView.builder(
-        itemCount: games.length,
-        itemBuilder: (context, index) => _itemBuilder(context, games[index]),
+      body: ValueListenableBuilder<Box<GameData>>(
+        valueListenable: Boxes.getGameDataBox().listenable(),
+          builder: (context, box, _) {
+          final gameDataList = box.values.toList().cast<GameData>();
+
+          return _buildList(gameDataList);
+          },
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -33,6 +42,35 @@ class _ListPageState extends State<ListPage> {
         },
       ),
     );
+  }
+
+  Future _addGame(String name) async {
+    final game = GameData()
+      ..name = name
+      ..dateCreated = DateTime.now()
+      ..teams = [TeamData("Team 1", 0), TeamData("Team 2", 0)]
+      ..edits = [];
+
+    final box = Boxes.getGameDataBox();
+    box.add(game);
+  }
+
+  _onGameTap(BuildContext context, int id) {
+    Navigator.pushNamed(context, GamePageRoute, arguments: {'id': id});
+  }
+
+  Widget _buildList(List<GameData> gameList) {
+    if(gameList.isEmpty){
+      return Center(
+        child: Text("No Games to Show",
+        style: TextStyle(fontSize: 24))
+      );
+    } else {
+      return ListView.builder(
+        itemCount: gameList.length,
+        itemBuilder: (context, index) => _itemBuilder(context, gameList[index]),
+      );
+    }
   }
 
   Widget _itemBuilder(BuildContext context, GameData data) {
@@ -53,12 +91,8 @@ class _ListPageState extends State<ListPage> {
               )),
         ),
       ),
-      onTap: () => _onGameTap(context, data.id),
+      onTap: () => _onGameTap(context, data.key),
     );
-  }
-
-  _onGameTap(BuildContext context, int id) {
-    Navigator.pushNamed(context, GamePageRoute, arguments: {'id': id});
   }
 
   Future<void> _displayNewGameDialog(BuildContext context) async {
@@ -91,16 +125,7 @@ class _ListPageState extends State<ListPage> {
                   backgroundColor:
                       MaterialStateProperty.all<Color>(Colors.green)),
               onPressed: () {
-                setState(() {
-                  games.add(GameData(
-                      2,
-                      _newGameTextFieldController.text,
-                      DateTime.now(),
-                      null,
-                      [TeamData("t1", 0), TeamData("t1", 0)],
-                      []));
-                  Navigator.pop(context);
-                });
+                _addGame(_newGameTextFieldController.text);
               },
               child: Text(
                 "OK",

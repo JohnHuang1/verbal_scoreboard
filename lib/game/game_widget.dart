@@ -4,16 +4,16 @@ import 'score_widget.dart';
 import 'package:flutter/material.dart';
 
 class GameWidget extends StatelessWidget {
-  final GameData data;
-  GameWidget(this.data);
+  final GameData _game;
+  GameWidget(this._game);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ScoreWidget(teams: data.teams),
-        ControlWidget(teams: data.teams)
+        ScoreWidget(_game),
+        ControlWidget(_game)
       ],
     );
   }

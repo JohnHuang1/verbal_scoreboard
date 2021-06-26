@@ -1,49 +1,27 @@
 import 'package:verbal_scoreboard/models/team_data.dart';
 import 'edit_data.dart';
+import 'package:hive/hive.dart';
 
-class GameData {
-  final int id;
-  final String name;
-  final DateTime dateCreated;
-  final DateTime dateEdited;
-  final List<TeamData> teams;
-  final List<EditData> edits;
+part 'game_data.g.dart';
 
-  GameData(
-    this.id,
+@HiveType(typeId: 0)
+class GameData extends HiveObject{
+  @HiveField(0)
+  String name;
+  @HiveField(1)
+  DateTime dateCreated;
+  @HiveField(2)
+  List<TeamData> teams;
+  @HiveField(3)
+  List<EditData> edits;
+
+  GameData({
     this.name,
     this.dateCreated,
-    this.dateEdited,
     this.teams,
     this.edits,
-  );
+  });
 
-  static List<GameData> fetchAll() {
-    return [
-      GameData(
-          0,
-          "Game1",
-          DateTime.now(),
-          DateTime.now(),
-          [TeamData("Team11", 0), TeamData("Team12", 1)],
-          [EditData("Added one point to Team12", DateTime.now())]),
-      GameData(
-          1,
-          "Game2",
-          DateTime.now(),
-          DateTime.now(),
-          [TeamData("Team21", 1), TeamData("Team22", 2)],
-          [EditData("Added one point to Team22", DateTime.now())]),
-    ];
-  }
-
-  static GameData fetchByID(int id) {
-    List<GameData> data = fetchAll();
-    for (GameData d in data) {
-      if (d.id == id) {
-        return d;
-      }
-    }
-    return null;
-  }
 }
+
+
