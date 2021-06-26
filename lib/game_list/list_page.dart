@@ -124,8 +124,11 @@ class _ListPageState extends State<ListPage> {
               style: ButtonStyle(
                   backgroundColor:
                       MaterialStateProperty.all<Color>(Colors.green)),
-              onPressed: () {
-                _addGame(_newGameTextFieldController.text);
+              onPressed: () async {
+                await _addGame(_newGameTextFieldController.text);
+                setState(() {
+                  Navigator.pop(context);
+                });
               },
               child: Text(
                 "OK",
