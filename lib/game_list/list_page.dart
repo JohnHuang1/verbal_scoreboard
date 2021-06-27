@@ -7,6 +7,7 @@ import 'package:verbal_scoreboard/models/team_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
 
 import '../boxes.dart';
+import 'create_game_dialog.dart';
 
 class ListPage extends StatefulWidget {
   ListPage({Key key}) : super(key: key);
@@ -28,11 +29,11 @@ class _ListPageState extends State<ListPage> {
       ),
       body: ValueListenableBuilder<Box<GameData>>(
         valueListenable: Boxes.getGameDataBox().listenable(),
-          builder: (context, box, _) {
+        builder: (context, box, _) {
           final gameDataList = box.values.toList().cast<GameData>();
 
           return _buildList(gameDataList);
-          },
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -60,11 +61,9 @@ class _ListPageState extends State<ListPage> {
   }
 
   Widget _buildList(List<GameData> gameList) {
-    if(gameList.isEmpty){
+    if (gameList.isEmpty) {
       return Center(
-        child: Text("No Games to Show",
-        style: TextStyle(fontSize: 24))
-      );
+          child: Text("No Games to Show", style: TextStyle(fontSize: 24)));
     } else {
       return ListView.builder(
         itemCount: gameList.length,
@@ -99,43 +98,15 @@ class _ListPageState extends State<ListPage> {
     return showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text("Create a New Game: "),
-          content: TextField(
-            controller: _newGameTextFieldController,
-            decoration: InputDecoration(hintText: "Name"),
-          ),
-          actions: [
-            TextButton(
-              style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.red)),
-              onPressed: () {
-                setState(() {
-                  Navigator.pop(context);
-                });
-              },
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            TextButton(
-              style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.green)),
-              onPressed: () async {
-                await _addGame(_newGameTextFieldController.text);
-                setState(() {
-                  Navigator.pop(context);
-                });
-              },
-              child: Text(
-                "OK",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
+        return CreateGameDialog(
+          textFieldController: _newGameTextFieldController,
+          confirmCallback: () async {
+            await _addGame(_newGameTextFieldController.text);
+            _newGameTextFieldController.clear();
+          },
+          cancelCallback: () {
+            _newGameTextFieldController.clear();
+          },
         );
       },
     );
