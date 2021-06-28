@@ -72,6 +72,7 @@ class _ListPageState extends State<ListPage> {
           child: Text("No Games to Show", style: TextStyle(fontSize: 24)));
     } else {
       return ListView.builder(
+        physics: BouncingScrollPhysics(),
         itemCount: gameList.length,
         itemBuilder: (context, index) => _itemBuilder(context, gameList[index]),
       );

@@ -15,68 +15,88 @@ class EditHistoryWidget extends StatefulWidget {
 class _EditHistoryWidgetState extends State<EditHistoryWidget> {
   bool _expanded = false;
 
+  double sheetTopMargin = 5;
+  double sheetListHeight = 400;
+  double sheetHeaderHeight = 50;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          child: Row(
-            children: [
-              Spacer(),
-              Text("Edit History"),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    child: GestureDetector(
-                        child: Icon(_expanded
-                            ? Icons.keyboard_arrow_down
-                            : Icons.keyboard_arrow_up),
-                        onTap: () {
-                          setState(() {
-                            _expanded = !_expanded;
-                          });
-                        }),
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
+
+    return SizedBox.expand(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return DraggableScrollableSheet(
+            initialChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
+            minChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
+            // maxChildSize: (sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight,
+            builder: (context, scrollController) {
+              return NotificationListener<OverscrollIndicatorNotification>(
+                onNotification: (overscroll) {
+                  overscroll.disallowGlow();
+                  return;
+                },
+                child: SingleChildScrollView(
+                  physics: ClampingScrollPhysics(),
+                  controller: scrollController,
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: constraints.maxHeight - sheetHeaderHeight - sheetTopMargin,
+                        margin: EdgeInsets.only(top: sheetHeaderHeight + sheetTopMargin),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                          Border(top: BorderSide(width: 2, color: Colors.grey)),
+                        ),
+                        child: widget._gameData.edits.isNotEmpty
+                            ? ListView.builder(
+                          controller: scrollController,
+                            physics: BouncingScrollPhysics(),
+                            itemCount: widget._gameData.edits.length,
+                            itemBuilder: (context, index) =>
+                                _historyBuilder(widget._gameData.edits[index]))
+                            : Center(child: Text("No Edit History")),
+                      ),
+                      Container(
+                        height: sheetHeaderHeight,
+                        margin: EdgeInsets.only(top: sheetTopMargin),
+                        child: Row(
+                          children: [
+                            Spacer(),
+                            Text("Score History"),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  child: Icon(_expanded
+                                      ? Icons.keyboard_arrow_down
+                                      : Icons.keyboard_arrow_up),
+                                  margin: EdgeInsets.symmetric(horizontal: 5),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.lightGreen,
+                          borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
+                          boxShadow: [BoxShadow(
+                            blurRadius: 7,
+                            offset: Offset(0, 7),
+                            color: Colors.black38,
+                          ),]
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-        ),
-        if (_expanded)
-          Container(
-            height: 400,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(width: 2, color: Colors.grey)),
-            ),
-            child: widget._gameData.edits.isNotEmpty
-                ? ListView.builder(
-                    itemCount: widget._gameData.edits.length,
-                    itemBuilder: (context, index) =>
-                        _historyBuilder(widget._gameData.edits[index]))
-                : Center(child: Text("No Edit History")),
-          ),
-      ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
