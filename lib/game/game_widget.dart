@@ -11,6 +11,7 @@ class GameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         ScoreWidget(_game),
         ControlWidget(_game)

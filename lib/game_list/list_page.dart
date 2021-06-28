@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
 
 import '../boxes.dart';
 import 'create_game_dialog.dart';
+import 'delete_game_dialog.dart';
+
+enum DialogChoice { NewGame, DeleteConfirmation }
 
 class ListPage extends StatefulWidget {
   ListPage({Key key}) : super(key: key);
@@ -18,6 +22,7 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   TextEditingController _newGameTextFieldController = TextEditingController();
+  NumOfTeams _radioValue = NumOfTeams.two;
 
   @override
   Widget build(BuildContext context) {
@@ -39,17 +44,18 @@ class _ListPageState extends State<ListPage> {
         child: Icon(Icons.add),
         backgroundColor: Colors.lightGreen,
         onPressed: () {
-          _displayNewGameDialog(context);
+          _displayDialog(context, DialogChoice.NewGame);
         },
       ),
     );
   }
 
-  Future _addGame(String name) async {
+  Future _addGame(String name, NumOfTeams numOfTeams) async {
     final game = GameData()
       ..name = name
       ..dateCreated = DateTime.now()
-      ..teams = [TeamData("Team 1", 0), TeamData("Team 2", 0)]
+      ..teams = List.generate(
+          numOfTeams.toInt(), (index) => TeamData("Team ${(index + 1)}", 0))
       ..edits = [];
 
     final box = Boxes.getGameDataBox();
@@ -73,11 +79,12 @@ class _ListPageState extends State<ListPage> {
   }
 
   Widget _itemBuilder(BuildContext context, GameData data) {
-    return GestureDetector(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+
+    return Dismissible(
+      child: GestureDetector(
         child: Container(
           color: Colors.lightBlue,
+          width: double.infinity,
           child: Padding(
               padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child: Column(
@@ -87,27 +94,68 @@ class _ListPageState extends State<ListPage> {
                   Text(
                       "Date Created: ${DateFormat.yMd().format(data.dateCreated)}")
                 ],
-              )),
+              ),),
+        ),
+        onTap: () => _onGameTap(context, data.key),
+      ),
+      key: ValueKey(data.name),
+      background: Container(
+        color: Colors.red,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children:[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Icon(Icons.delete_forever),
+            ),
+          ]
         ),
       ),
-      onTap: () => _onGameTap(context, data.key),
+      confirmDismiss: (direction) async {
+        bool result = await _displayDialog(context, DialogChoice.DeleteConfirmation,
+            selectedGame: data);
+        return result;
+      },
+      direction: DismissDirection.endToStart,
+      dismissThresholds: {DismissDirection.endToStart : 0.2},
     );
   }
 
-  Future<void> _displayNewGameDialog(BuildContext context) async {
+  Future<dynamic> _displayDialog(BuildContext context, DialogChoice choice,
+      {GameData selectedGame}) async {
+    if (choice == DialogChoice.DeleteConfirmation && selectedGame == null)
+      return;
     return showDialog(
       context: context,
       builder: (context) {
-        return CreateGameDialog(
-          textFieldController: _newGameTextFieldController,
-          confirmCallback: () async {
-            await _addGame(_newGameTextFieldController.text);
-            _newGameTextFieldController.clear();
-          },
-          cancelCallback: () {
-            _newGameTextFieldController.clear();
-          },
-        );
+        switch (choice) {
+          case DialogChoice.NewGame:
+            return CreateGameDialog(
+              textFieldController: _newGameTextFieldController,
+              confirmCallback: () async {
+                String name = _newGameTextFieldController.text;
+                if (name != "" && _radioValue.toInt() != -1) {
+                  await _addGame(_newGameTextFieldController.text, _radioValue);
+                }
+                _newGameTextFieldController.clear();
+              },
+              cancelCallback: () {
+                _newGameTextFieldController.clear();
+              },
+              radioButtonCallback: (NumOfTeams value) {
+                _radioValue = value;
+              },
+            );
+          case DialogChoice.DeleteConfirmation:
+            return DeleteGameDialog(
+              selectedGame,
+              onConfirm: () {
+                selectedGame.delete();
+              },
+            );
+          default:
+            return Container();
+        }
       },
     );
   }

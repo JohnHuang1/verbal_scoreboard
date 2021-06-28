@@ -1,35 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
 
-class CreateGameDialog extends StatefulWidget {
+class CreateGameDialog extends StatelessWidget {
   final TextEditingController textFieldController;
   final Function confirmCallback;
   final Function cancelCallback;
+  final Function radioButtonCallback;
 
   CreateGameDialog(
-      {this.textFieldController, this.confirmCallback, this.cancelCallback});
+      {this.textFieldController, this.confirmCallback, this.cancelCallback, this.radioButtonCallback});
 
-  @override
-  _CreateGameDialogState createState() => _CreateGameDialogState();
-}
-
-class _CreateGameDialogState extends State<CreateGameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text("Create a New Game: "),
-      content: TextField(
-        controller: widget.textFieldController,
-        decoration: InputDecoration(hintText: "Name"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: textFieldController,
+            decoration: InputDecoration(hintText: "Name"),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: 20,
+            ),
+            child: Text("How many teams?"),
+          ),
+          TeamRadioButtons(onChangedCallback: (NumOfTeams value) => radioButtonCallback(value))
+        ],
       ),
       actions: [
         TextButton(
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(Colors.red)),
           onPressed: () async {
-            // setState(() {
-            //   Navigator.pop(context);
-            // });
-            await widget.cancelCallback();
+            await cancelCallback();
             Navigator.pop(context);
           },
           child: Text(
@@ -41,10 +48,7 @@ class _CreateGameDialogState extends State<CreateGameDialog> {
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(Colors.green)),
           onPressed: () async {
-            await widget.confirmCallback();
-            // setState(() {
-            //   Navigator.pop(context);
-            // });
+            await confirmCallback();
             Navigator.pop(context);
           },
           child: Text(

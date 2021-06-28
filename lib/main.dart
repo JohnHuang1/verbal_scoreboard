@@ -6,6 +6,7 @@ import 'package:verbal_scoreboard/models/team_data.dart';
 import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
 import 'package:verbal_scoreboard/shared/style.dart';
+import 'package:flutter/rendering.dart';
 
 import 'game/game_page.dart';
 import 'game_list/list_page.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    debugPaintSizeEnabled = false;
     return MaterialApp(
       onGenerateRoute: _routeFactory(),
       theme: _theme(),
