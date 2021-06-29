@@ -34,10 +34,13 @@ class _GamePageState extends State<GamePage> {
   Widget _buildContent(BuildContext context, GameData game) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(game.name +
+        title: Text("Game " +
+            game.name +
             " | " +
+            "ID: " +
             game.key.toString() +
             " | " +
+            "Teams: " +
             game.teams.length.toString()),
         actions: [
           IconButton(
@@ -62,10 +65,13 @@ class _GamePageState extends State<GamePage> {
         width: double.infinity,
         height: double.infinity,
         child: Stack(
-          children: [GameWidget(game), Align(
-            alignment: Alignment.bottomCenter,
-            child: EditHistoryWidget(game),
-          )],
+          children: [
+            GameWidget(game),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: EditHistoryWidget(game),
+            )
+          ],
         ),
       ),
     );
