@@ -70,6 +70,7 @@ class MyApp extends StatelessWidget {
       canvasColor: LightBackgroundColor,
       backgroundColor: BrightRedColor,
       cardColor: YellowColor,
+      highlightColor: BrightTealColor,
     );
   }
 }

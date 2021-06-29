@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:verbal_scoreboard/game_list/game_list_item.dart';
 import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
@@ -21,8 +21,10 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
+  final GlobalKey<AnimatedListState> listKey = GlobalKey<AnimatedListState>();
   TextEditingController _newGameTextFieldController = TextEditingController();
   NumOfTeams _radioValue = NumOfTeams.two;
+  Map<int, bool> expanded = {-1: false};
 
   @override
   Widget build(BuildContext context) {
@@ -70,59 +72,66 @@ class _ListPageState extends State<ListPage> {
       return Center(
           child: Text("No Games to Show", style: TextStyle(fontSize: 24)));
     } else {
-      return ListView.builder(
+      return AnimatedList(
+        key: listKey,
         physics: BouncingScrollPhysics(),
-        itemCount: gameList.length,
-        itemBuilder: (context, index) => _itemBuilder(context, gameList[index]),
+        initialItemCount: gameList.length,
+        itemBuilder: (context, index, animation) => _itemBuilder(
+            context, gameList.reversed.toList()[index], animation, index),
       );
     }
   }
 
-  Widget _itemBuilder(BuildContext context, GameData data) {
-
-    return Dismissible(
-      child: GestureDetector(
-        child: Container(
-          color: Theme.of(context).accentColor,
-          width: double.infinity,
-          child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(data.name),
-                  Text(
-                      "Date Created: ${DateFormat.yMd().format(data.dateCreated)}")
-                ],
-              ),),
+  Widget _itemBuilder(
+      BuildContext context, GameData data, Animation animation, int index) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(-1, 0),
+        end: Offset(0, 0),
+      ).animate(animation),
+      child: Dismissible(
+        child: GestureDetector(
+          child: GameListItem(data, expanded: expanded.containsKey(data.key) ? true : false,),
+          onTap: () => _onGameTap(context, data.key),
+          onPanUpdate: (details) {
+            if(details.delta.dy > 0){
+              setState(() {
+                expanded = {data.key : true};
+              });
+            } else if(details.delta.dy < 0){
+              setState(() {
+                expanded = {};
+              });
+            }
+          },
         ),
-        onTap: () => _onGameTap(context, data.key),
-      ),
-      key: ValueKey(data.key),
-      background: Container(
-        color: Theme.of(context).backgroundColor,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children:[
+        key: ValueKey(data.key),
+        background: Container(
+          color: Theme.of(context).backgroundColor,
+          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Icon(Icons.delete_forever, color: Colors.white,),
+              child: Icon(
+                Icons.delete_forever,
+                color: Colors.white,
+              ),
             ),
-          ]
+          ]),
         ),
+        confirmDismiss: (direction) async {
+          bool result = await _displayDialog(
+              context, DialogChoice.DeleteConfirmation,
+              selectedGame: data, index: index);
+          return result;
+        },
+        direction: DismissDirection.endToStart,
+        dismissThresholds: {DismissDirection.endToStart: 0.2},
       ),
-      confirmDismiss: (direction) async {
-        bool result = await _displayDialog(context, DialogChoice.DeleteConfirmation,
-            selectedGame: data);
-        return result;
-      },
-      direction: DismissDirection.endToStart,
-      dismissThresholds: {DismissDirection.endToStart : 0.2},
     );
   }
 
   Future<dynamic> _displayDialog(BuildContext context, DialogChoice choice,
-      {GameData selectedGame}) async {
+      {GameData selectedGame, int index}) async {
     if (choice == DialogChoice.DeleteConfirmation && selectedGame == null)
       return;
     return showDialog(
@@ -136,6 +145,10 @@ class _ListPageState extends State<ListPage> {
                 String name = _newGameTextFieldController.text;
                 if (name != "" && _radioValue.toInt() != -1) {
                   await _addGame(_newGameTextFieldController.text, _radioValue);
+                  if (listKey.currentState != null) {
+                    listKey.currentState.insertItem(0,
+                        duration: const Duration(milliseconds: 500));
+                  }
                 }
                 _newGameTextFieldController.clear();
               },
@@ -149,8 +162,10 @@ class _ListPageState extends State<ListPage> {
           case DialogChoice.DeleteConfirmation:
             return DeleteGameDialog(
               selectedGame,
-              onConfirm: () {
-                selectedGame.delete();
+              onConfirm: () async {
+                await selectedGame.delete();
+                listKey.currentState.removeItem(index, (_, __) => Container(),
+                    duration: const Duration(milliseconds: 500));
               },
             );
           default:
