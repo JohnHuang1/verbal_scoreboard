@@ -7,10 +7,16 @@ class GameListItem extends StatefulWidget {
   final GameData _gameData;
   final bool expanded;
   int highestScore;
+  String highestTeam;
 
   GameListItem(this._gameData, {Key key, this.expanded = true})
-      : super(key: key){
-    highestScore = _gameData.teams.reduce((value, element) => value.score > element.score ? value : element).score;
+      : super(key: key) {
+    highestScore = _gameData.teams
+        .reduce(
+            (value, element) => value.score > element.score ? value : element)
+        .score;
+    final list = _gameData.teams.where((element) => element.score == highestScore);
+    highestTeam = list.length > 1 ? "Tie" : list.toList()[0].name;
   }
 
   @override
@@ -20,62 +26,56 @@ class GameListItem extends StatefulWidget {
 class _GameListItemState extends State<GameListItem> {
   @override
   Widget build(BuildContext context) {
-    // return Container(
-    //   color: Theme.of(context).accentColor,
-    //   width: double.infinity,
-    //   child: Padding(
-    //     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-    //     child: Column(
-    //       crossAxisAlignment: CrossAxisAlignment.start,
-    //       children: [
-    //         Text(_gameData.name),
-    //         Text(
-    //             "Date Created: ${DateFormat.yMd().format(_gameData.dateCreated)}")
-    //       ],
-    //     ),
-    //   ),
-    // );
     return AnimatedContainer(
-      duration: Duration(milliseconds: 1000),
-      curve: Curves.easeInOut,
-      child: Card(
-        elevation: widget.expanded ? 15.0 : 8.0,
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Padding(
-                  padding:
-                      EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 20),
-                  child: Text(widget._gameData.name,
-                      style: Theme.of(context).textTheme.headline6),
-                ),
-                Padding(
-                  padding:
-                      EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 15),
-                  child: Text(
-                      DateFormat('MMMM d, yyyy')
-                          .format(widget._gameData.dateCreated),
-                      style: Theme.of(context).textTheme.subtitle2),
-                ),
-              ],
-            ),
-            if (widget.expanded)
-              Container(
-                height: 80,
-                margin: EdgeInsets.only(bottom: 10),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: widget._gameData.teams.length,
-                  itemBuilder: (context, index) =>
-                      _scoreBuilder(widget._gameData.teams[index]),
-                )
+      duration: Duration(seconds: 2),
+      curve: Curves.bounceInOut,
+      child: Container(
+        margin: EdgeInsets.only(left: 10, right: 10, top: 5),
+        child: Card(
+          elevation: widget.expanded ? 15.0 : 8.0,
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Padding(
+                    padding:
+                    EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 20),
+                    child: Text(widget._gameData.name,
+                        style: Theme.of(context).textTheme.headline6),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(widget.highestTeam)
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                    EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 15),
+                    child: Text(
+                        DateFormat('MMMM d, yyyy')
+                            .format(widget._gameData.dateCreated),
+                        style: Theme.of(context).textTheme.subtitle2),
+                  ),
+                ],
               ),
-          ],
+              if (widget.expanded)
+                Container(
+                  height: 80,
+                  margin: EdgeInsets.only(bottom: 10),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget._gameData.teams.length,
+                    itemBuilder: (context, index) =>
+                        _scoreBuilder(widget._gameData.teams[index]),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -85,7 +85,9 @@ class _GameListItemState extends State<GameListItem> {
     return Container(
       width: 80,
       child: Card(
-        color: data.score == widget.highestScore ? Theme.of(context).highlightColor : Theme.of(context).backgroundColor,
+        color: data.score == widget.highestScore
+            ? Theme.of(context).highlightColor
+            : Theme.of(context).backgroundColor,
         elevation: 6.0,
         child: Column(
           mainAxisSize: MainAxisSize.min,

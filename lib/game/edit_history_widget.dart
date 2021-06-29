@@ -50,7 +50,7 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
                           // border:
                           // Border(top: BorderSide(width: 2, color: Colors.grey)),
                         ),
-                        child: widget._gameData.edits.isNotEmpty
+                        child: widget._gameData != null && widget._gameData.edits.isNotEmpty
                             ? ListView.builder(
                           controller: scrollController,
                             physics: BouncingScrollPhysics(),

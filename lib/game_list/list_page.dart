@@ -63,11 +63,14 @@ class _ListPageState extends State<ListPage> {
     box.add(game);
   }
 
-  _onGameTap(BuildContext context, int id) async {
-    await Navigator.pushNamed(context, GamePageRoute, arguments: {'id': id})
-        .then((value) {
-      setState(() {});
-    });
+  _onGameTap(BuildContext context, int id, int index, GameData data) async {
+    final result = await Navigator.pushNamed(context, GamePageRoute,
+        arguments: {'id': id});
+    if (result is bool && result) {
+      data.delete();
+      listKey.currentState.removeItem(index, (_, __) => Container(),
+          duration: const Duration(milliseconds: 500));
+    }
   }
 
   Widget _buildList(List<GameData> gameList) {
@@ -98,17 +101,14 @@ class _ListPageState extends State<ListPage> {
             data,
             expanded: expanded.containsKey(data.key) ? true : false,
           ),
-          onTap: () => _onGameTap(context, data.key),
-          onPanUpdate: (details) {
-            if (details.delta.dy > 0) {
-              setState(() {
-                expanded = {data.key: true};
-              });
-            } else if (details.delta.dy < 0) {
-              setState(() {
+          onTap: () => _onGameTap(context, data.key, index, data),
+          onLongPress: () {
+            setState(() {
+              if (expanded.containsKey(data.key))
                 expanded = {};
-              });
-            }
+              else
+                expanded = {data.key: true};
+            });
           },
         ),
         key: ValueKey(data.key),

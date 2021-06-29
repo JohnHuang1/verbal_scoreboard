@@ -35,7 +35,7 @@ class _GamePageState extends State<GamePage> {
     bool _isEditingText = false;
     return Scaffold(
       appBar: AppBar(
-        title: Text(game.name),
+        title: Text(game != null ? game.name : ""),
         actions: [
           IconButton(
             icon: Icon(Icons.mode_edit),
@@ -46,10 +46,7 @@ class _GamePageState extends State<GamePage> {
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: () {
-              game.delete();
               Navigator.pop(context, true);
-
-              //Delete
             },
           )
         ],

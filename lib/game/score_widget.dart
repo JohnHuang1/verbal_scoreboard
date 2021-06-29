@@ -9,12 +9,12 @@ class ScoreWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return _game != null ? ListView.builder(
       itemCount: _game.teams.length,
       shrinkWrap: true,
       itemBuilder: (context, index) =>
           _itemBuilder(context, _game.teams[index]),
-    );
+    ) : Container(child: Text("No teams to show."));
   }
 
   Widget _itemBuilder(BuildContext context, TeamData team) {
