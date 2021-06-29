@@ -99,7 +99,7 @@ class _ListPageState extends State<ListPage> {
         ),
         onTap: () => _onGameTap(context, data.key),
       ),
-      key: ValueKey(data.name),
+      key: ValueKey(data.key),
       background: Container(
         color: Colors.red,
         child: Row(
