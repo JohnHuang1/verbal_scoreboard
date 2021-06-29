@@ -11,7 +11,6 @@ import 'package:flutter/rendering.dart';
 import 'game/game_page.dart';
 import 'game_list/list_page.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -37,11 +36,11 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  RouteFactory _routeFactory(){
+  RouteFactory _routeFactory() {
     return (settings) {
       Map<String, dynamic> arguments = settings.arguments;
       Widget screen;
-      switch(settings.name){
+      switch (settings.name) {
         case ListPageRoute:
           screen = ListPage();
           break;
@@ -55,17 +54,22 @@ class MyApp extends StatelessWidget {
     };
   }
 
-  ThemeData _theme(){
+  ThemeData _theme() {
     return ThemeData(
-        appBarTheme: AppBarTheme(
-          textTheme: TextTheme(headline6: AppBarTextStyle),
-        ),
-        textTheme: TextTheme(
-          headline6: TitleTextStyle,
-          bodyText2: BodyText2TextStyle,
-          subtitle2: SubTitle2TextStyle,
-          caption: CaptionTextStyle,
-        )
+      appBarTheme: AppBarTheme(
+        textTheme: TextTheme(headline6: AppBarTextStyle),
+      ),
+      textTheme: TextTheme(
+        headline6: TitleTextStyle,
+        bodyText2: BodyText2TextStyle,
+        subtitle2: SubTitle2TextStyle,
+        caption: CaptionTextStyle,
+      ),
+      primaryColor: Colors.black,
+      accentColor: YellowColor,
+      canvasColor: LightBackgroundColor,
+      backgroundColor: BrightRedColor,
+      cardColor: YellowColor,
     );
   }
 }

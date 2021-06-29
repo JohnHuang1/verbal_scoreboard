@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
+import '../shared/style.dart';
 
 class EditHistoryWidget extends StatefulWidget {
   final GameData _gameData;
@@ -15,7 +17,7 @@ class EditHistoryWidget extends StatefulWidget {
 class _EditHistoryWidgetState extends State<EditHistoryWidget> {
   bool _expanded = false;
 
-  double sheetTopMargin = 5;
+  double sheetTopMargin = 50;
   double sheetListHeight = 400;
   double sheetHeaderHeight = 50;
 
@@ -28,7 +30,7 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
           return DraggableScrollableSheet(
             initialChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
             minChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
-            // maxChildSize: (sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight,
+            maxChildSize: (sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight,
             builder: (context, scrollController) {
               return NotificationListener<OverscrollIndicatorNotification>(
                 onNotification: (overscroll) {
@@ -36,17 +38,17 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
                   return;
                 },
                 child: SingleChildScrollView(
-                  physics: ClampingScrollPhysics(),
                   controller: scrollController,
                   child: Stack(
                     children: [
                       Container(
-                        height: constraints.maxHeight - sheetHeaderHeight - sheetTopMargin,
+                        // height: constraints.maxHeight - sheetHeaderHeight - sheetTopMargin,
+                        height: sheetListHeight,
                         margin: EdgeInsets.only(top: sheetHeaderHeight + sheetTopMargin),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border:
-                          Border(top: BorderSide(width: 2, color: Colors.grey)),
+                          // border:
+                          // Border(top: BorderSide(width: 2, color: Colors.grey)),
                         ),
                         child: widget._gameData.edits.isNotEmpty
                             ? ListView.builder(
@@ -79,15 +81,19 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
                         ),
                         padding: EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.lightGreen,
+                          color: Theme.of(context).accentColor,
                           borderRadius:
                           BorderRadius.vertical(top: Radius.circular(20)),
+                            border: Border.all(color: Theme.of(context).accentColor.darken(.3), width: 2.0,),
                           boxShadow: [BoxShadow(
                             blurRadius: 7,
                             offset: Offset(0, 7),
                             color: Colors.black38,
                           ),]
                         ),
+                        // foregroundDecoration: BoxDecoration(
+                        //   border: Border.all(color: Theme.of(context).accentColor.darken(.3), width: 2.0,),
+                        // ),
                       ),
                     ],
                   ),

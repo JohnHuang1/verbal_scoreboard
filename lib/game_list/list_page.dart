@@ -42,7 +42,6 @@ class _ListPageState extends State<ListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        backgroundColor: Colors.lightGreen,
         onPressed: () {
           _displayDialog(context, DialogChoice.NewGame);
         },
@@ -84,7 +83,7 @@ class _ListPageState extends State<ListPage> {
     return Dismissible(
       child: GestureDetector(
         child: Container(
-          color: Colors.lightBlue,
+          color: Theme.of(context).accentColor,
           width: double.infinity,
           child: Padding(
               padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -101,13 +100,13 @@ class _ListPageState extends State<ListPage> {
       ),
       key: ValueKey(data.key),
       background: Container(
-        color: Colors.red,
+        color: Theme.of(context).backgroundColor,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children:[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Icon(Icons.delete_forever),
+              child: Icon(Icons.delete_forever, color: Colors.white,),
             ),
           ]
         ),
