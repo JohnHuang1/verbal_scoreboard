@@ -63,8 +63,11 @@ class _ListPageState extends State<ListPage> {
     box.add(game);
   }
 
-  _onGameTap(BuildContext context, int id) {
-    Navigator.pushNamed(context, GamePageRoute, arguments: {'id': id});
+  _onGameTap(BuildContext context, int id) async {
+    await Navigator.pushNamed(context, GamePageRoute, arguments: {'id': id})
+        .then((value) {
+      setState(() {});
+    });
   }
 
   Widget _buildList(List<GameData> gameList) {
@@ -91,14 +94,17 @@ class _ListPageState extends State<ListPage> {
       ).animate(animation),
       child: Dismissible(
         child: GestureDetector(
-          child: GameListItem(data, expanded: expanded.containsKey(data.key) ? true : false,),
+          child: GameListItem(
+            data,
+            expanded: expanded.containsKey(data.key) ? true : false,
+          ),
           onTap: () => _onGameTap(context, data.key),
           onPanUpdate: (details) {
-            if(details.delta.dy > 0){
+            if (details.delta.dy > 0) {
               setState(() {
-                expanded = {data.key : true};
+                expanded = {data.key: true};
               });
-            } else if(details.delta.dy < 0){
+            } else if (details.delta.dy < 0) {
               setState(() {
                 expanded = {};
               });

@@ -32,31 +32,24 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildContent(BuildContext context, GameData game) {
+    bool _isEditingText = false;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Game " +
-            game.name +
-            " | " +
-            "ID: " +
-            game.key.toString() +
-            " | " +
-            "Teams: " +
-            game.teams.length.toString()),
+        title: Text(game.name),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.mode_edit),
             onPressed: () {
-              game.edits
-                  .add(EditData("Added 1 point to Team 1", DateTime.now()));
-              game.save();
+              //edit game name
             },
           ),
           IconButton(
-            icon: Icon(Icons.remove),
+            icon: Icon(Icons.delete),
             onPressed: () {
-              game.edits.add(
-                  EditData("Subtracted 1 point from Team 1", DateTime.now()));
-              game.save();
+              game.delete();
+              Navigator.pop(context, true);
+
+              //Delete
             },
           )
         ],
