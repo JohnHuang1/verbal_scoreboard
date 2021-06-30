@@ -19,17 +19,20 @@ class TeamDataAdapter extends TypeAdapter<TeamData> {
     return TeamData(
       fields[0] as String,
       fields[1] as int,
+      color: fields[2] as Color,
     );
   }
 
   @override
   void write(BinaryWriter writer, TeamData obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.score);
+      ..write(obj.score)
+      ..writeByte(2)
+      ..write(obj.color);
   }
 
   @override

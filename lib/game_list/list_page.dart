@@ -11,7 +11,7 @@ import '../boxes.dart';
 import 'create_game_dialog.dart';
 import 'delete_game_dialog.dart';
 
-enum DialogChoice { NewGame, DeleteConfirmation }
+enum _DialogChoice { NewGame, DeleteConfirmation }
 
 class ListPage extends StatefulWidget {
   ListPage({Key key}) : super(key: key);
@@ -48,7 +48,7 @@ class _ListPageState extends State<ListPage> {
         focusColor: Theme.of(context).cardColor,
         child: Icon(Icons.add),
         onPressed: () {
-          _displayDialog(context, DialogChoice.NewGame);
+          _displayDialog(context, _DialogChoice.NewGame);
         },
       ),
     );
@@ -130,7 +130,7 @@ class _ListPageState extends State<ListPage> {
         ),
         confirmDismiss: (direction) async {
           bool result = await _displayDialog(
-              context, DialogChoice.DeleteConfirmation,
+              context, _DialogChoice.DeleteConfirmation,
               selectedGame: data, index: index);
           return result;
         },
@@ -140,15 +140,15 @@ class _ListPageState extends State<ListPage> {
     );
   }
 
-  Future<dynamic> _displayDialog(BuildContext context, DialogChoice choice,
+  Future<dynamic> _displayDialog(BuildContext context, _DialogChoice choice,
       {GameData selectedGame, int index}) async {
-    if (choice == DialogChoice.DeleteConfirmation && selectedGame == null)
+    if (choice == _DialogChoice.DeleteConfirmation && selectedGame == null)
       return;
     return showDialog(
       context: context,
       builder: (context) {
         switch (choice) {
-          case DialogChoice.NewGame:
+          case _DialogChoice.NewGame:
             return CreateGameDialog(
               textFieldController: _newGameTextFieldController,
               confirmCallback: () async {
@@ -169,7 +169,7 @@ class _ListPageState extends State<ListPage> {
                 _radioValue = value;
               },
             );
-          case DialogChoice.DeleteConfirmation:
+          case _DialogChoice.DeleteConfirmation:
             return DeleteGameDialog(
               selectedGame,
               onConfirm: () async {

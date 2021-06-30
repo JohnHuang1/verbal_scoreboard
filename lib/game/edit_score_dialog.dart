@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
+import 'package:verbal_scoreboard/models/team_data.dart';
 
-class CreateGameDialog extends StatelessWidget {
+class EditScoreDialog extends StatelessWidget {
   final TextEditingController textFieldController;
   final Function confirmCallback;
   final Function cancelCallback;
-  final Function radioButtonCallback;
+  final TeamData teamData;
 
-  CreateGameDialog(
-      {this.textFieldController, this.confirmCallback, this.cancelCallback, this.radioButtonCallback});
+  EditScoreDialog(
+      {this.textFieldController,
+      this.confirmCallback,
+      this.cancelCallback,
+      this.teamData});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Create a New Game: "),
+      title: Text("Edit Score for ${teamData.name}"),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
             controller: textFieldController,
-            decoration: InputDecoration(hintText: "Name"),
+            decoration: InputDecoration(hintText: "Score"),
+            textAlign: TextAlign.center,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              top: 20,
-            ),
-            child: Text("How many teams?"),
-          ),
-          TeamRadioButtons(onChangedCallback: (NumOfTeams value) => radioButtonCallback(value))
         ],
       ),
       actions: [
