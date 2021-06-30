@@ -17,7 +17,7 @@ class EditHistoryWidget extends StatefulWidget {
 class _EditHistoryWidgetState extends State<EditHistoryWidget> {
   bool _expanded = false;
 
-  double sheetTopMargin = 50;
+  double sheetTopMargin = 5;
   double sheetListHeight = 400;
   double sheetHeaderHeight = 50;
 

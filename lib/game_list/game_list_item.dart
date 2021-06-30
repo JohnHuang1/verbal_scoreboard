@@ -15,7 +15,8 @@ class GameListItem extends StatefulWidget {
         .reduce(
             (value, element) => value.score > element.score ? value : element)
         .score;
-    final list = _gameData.teams.where((element) => element.score == highestScore);
+    final list =
+        _gameData.teams.where((element) => element.score == highestScore);
     highestTeam = list.length > 1 ? "Tie" : list.toList()[0].name;
   }
 
@@ -23,16 +24,44 @@ class GameListItem extends StatefulWidget {
   _GameListItemState createState() => _GameListItemState();
 }
 
-class _GameListItemState extends State<GameListItem> {
+class _GameListItemState extends State<GameListItem>
+    with SingleTickerProviderStateMixin {
+  Duration duration = Duration(milliseconds: 500);
+
+  AnimationController expandController;
+
+  @override
+  void initState() {
+    super.initState();
+    expandController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+  }
+
+  @override
+  void didUpdateWidget(GameListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expanded) {
+      expandController.forward();
+    } else {
+      expandController.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    expandController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: Duration(seconds: 2),
-      curve: Curves.bounceInOut,
+      duration: duration,
+      curve: Curves.fastOutSlowIn,
       child: Container(
-        margin: EdgeInsets.only(left: 10, right: 10, top: 5),
+        margin: EdgeInsets.only(left: 10, right: 10, top: 2, bottom: 2),
         child: Card(
-          elevation: widget.expanded ? 15.0 : 8.0,
+          elevation: widget.expanded ? 20.0 : 8.0,
           child: Column(
             children: [
               Row(
@@ -41,20 +70,19 @@ class _GameListItemState extends State<GameListItem> {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Padding(
-                    padding:
-                    EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 20),
+                    padding: EdgeInsets.only(
+                        top: 10, bottom: 10, left: 15, right: 20),
                     child: Text(widget._gameData.name,
                         style: Theme.of(context).textTheme.headline6),
                   ),
                   Expanded(
                     child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(widget.highestTeam)
-                    ),
+                        alignment: Alignment.centerRight,
+                        child: Text(widget.highestTeam)),
                   ),
                   Padding(
-                    padding:
-                    EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 15),
+                    padding: EdgeInsets.only(
+                        top: 10, bottom: 10, left: 10, right: 15),
                     child: Text(
                         DateFormat('MMMM d, yyyy')
                             .format(widget._gameData.dateCreated),
@@ -62,11 +90,21 @@ class _GameListItemState extends State<GameListItem> {
                   ),
                 ],
               ),
-              if (widget.expanded)
-                Container(
+              SizeTransition(
+                axisAlignment: 1.0,
+                sizeFactor: Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+                  parent: expandController,
+                  curve: Curves.fastOutSlowIn,
+                ))
+                  ..addListener(() {
+                    setState(() {});
+                  }),
+                child: Container(
+                  alignment: Alignment.center,
                   height: 80,
                   margin: EdgeInsets.only(bottom: 10),
                   child: ListView.builder(
+                    physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
                     itemCount: widget._gameData.teams.length,
@@ -74,6 +112,7 @@ class _GameListItemState extends State<GameListItem> {
                         _scoreBuilder(widget._gameData.teams[index]),
                   ),
                 ),
+              )
             ],
           ),
         ),
@@ -99,9 +138,13 @@ class _GameListItemState extends State<GameListItem> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              data.score.toString(),
-              style: TextStyle(fontSize: 30),
+            Padding(
+              padding: EdgeInsets.zero,
+              child: Text(
+                data.score.toString(),
+                style: TextStyle(fontSize: 30),
+                overflow: TextOverflow.fade,
+              ),
             )
           ],
         ),

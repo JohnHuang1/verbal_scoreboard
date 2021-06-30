@@ -117,6 +117,7 @@ class _ListPageState extends State<ListPage> {
         key: ValueKey(data.key),
         background: Container(
           color: Theme.of(context).backgroundColor,
+          margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
           child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),

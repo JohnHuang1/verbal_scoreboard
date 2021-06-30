@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/game_widget.dart';
+import 'package:verbal_scoreboard/game/score_widget.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -63,14 +64,19 @@ class _GamePageState extends State<GamePage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        child: Stack(
-          children: [
-            GameWidget(game),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: EditHistoryWidget(game),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                ScoreWidget(game, constraints),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: EditHistoryWidget(game),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
