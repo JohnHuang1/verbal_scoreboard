@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/game_widget.dart';
-import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -19,6 +18,7 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   TextEditingController _editingController;
   final dynamic _gameKey;
+  bool _isEditingText = false;
 
   _GamePageState(this._gameKey);
   String _initialText;
@@ -39,20 +39,11 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildContent(BuildContext context, GameData game) {
-    bool _isEditingText = false;
-    _initialText = 'hey';
+    _initialText = game.name;
     _editingController = TextEditingController(text: _initialText);
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _initialText,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18.0,
-          ),
-        ),
-        /*_editTitleTextField(
-            _isEditingText, _initialText, _editingController, game), */
+        title: _editTitleTextField(_editingController, game),
         actions: [
           /*IconButton(
             icon: Icon(Icons.mode_edit),
@@ -66,7 +57,7 @@ class _GamePageState extends State<GamePage> {
             onPressed: () {
               Navigator.pop(context, true);
             },
-          )
+          ),
         ],
       ),
       body: Container(
@@ -78,18 +69,18 @@ class _GamePageState extends State<GamePage> {
             Align(
               alignment: Alignment.bottomCenter,
               child: EditHistoryWidget(game),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _editTitleTextField(bool _isEditingText, String iText,
-      TextEditingController _editingController, GameData game) {
+  Widget _editTitleTextField(TextEditingController _editingController, GameData game) {
     if (_isEditingText)
       return Center(
         child: TextField(
+          style: TextStyle(color: Colors.white),
           onSubmitted: (newValue) {
             setState(() {
               _initialText = newValue;
@@ -102,7 +93,7 @@ class _GamePageState extends State<GamePage> {
           controller: _editingController,
         ),
       );
-    return GestureDetector(
+    return InkWell(
         onTap: () {
           setState(() {
             _isEditingText = true;
@@ -110,10 +101,6 @@ class _GamePageState extends State<GamePage> {
         },
         child: Text(
           _initialText,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18.0,
-          ),
         ));
   }
 }

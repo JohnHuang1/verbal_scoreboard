@@ -30,7 +30,7 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
           return DraggableScrollableSheet(
             initialChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
             minChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
-            maxChildSize: (sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight,
+            maxChildSize: ((sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight).clamp(0, 1.0) ,
             builder: (context, scrollController) {
               return NotificationListener<OverscrollIndicatorNotification>(
                 onNotification: (overscroll) {
