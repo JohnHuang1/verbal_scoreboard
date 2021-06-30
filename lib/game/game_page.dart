@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
-import 'package:verbal_scoreboard/game/game_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
+import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -40,23 +40,25 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildContent(BuildContext context, GameData game) {
-    _initialText = game.name;
+    _initialText = game?.name ?? "";
     _editingController = TextEditingController(text: _initialText);
     return Scaffold(
       appBar: AppBar(
         title: _editTitleTextField(_editingController, game),
         actions: [
-          /*IconButton(
-            icon: Icon(Icons.mode_edit),
+          IconButton(
+            icon: Icon(Icons.history),
             onPressed: () {
-              //edit game name
+              //TODO show edit history
             },
           ),
-          */
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () {
-              Navigator.pop(context, true);
+            onPressed: () async {
+              bool result = await showDialog(builder: (context) {
+                return DeleteGameDialog(game);
+              }, context: context);
+              if(result) Navigator.pop(context, true);
             },
           ),
         ],
@@ -68,13 +70,13 @@ class _GamePageState extends State<GamePage> {
           builder: (context, constraints) {
             return Stack(
               alignment: Alignment.topCenter,
-              children: [
-                ScoreWidget(game, constraints),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: EditHistoryWidget(game),
-                ),
-              ],
+              children: game != null ? [
+              ScoreWidget(game, constraints),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: EditHistoryWidget(game),
+              ),
+              ] : [Container(child: Text("Game Missing"))]
             );
           },
         ),
