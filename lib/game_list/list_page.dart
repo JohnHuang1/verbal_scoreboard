@@ -59,7 +59,7 @@ class _ListPageState extends State<ListPage> {
       ..name = name
       ..dateCreated = DateTime.now()
       ..teams = List.generate(
-          numOfTeams.toInt(), (index) => TeamData("Team ${(index + 1)}", 0))
+          numOfTeams.toInt(), (index) => TeamData("Team ${(index + 1)}", 0, color: Theme.of(context).cardColor.value))
       ..edits = [];
 
     final box = Boxes.getGameDataBox();

@@ -19,7 +19,7 @@ class TeamDataAdapter extends TypeAdapter<TeamData> {
     return TeamData(
       fields[0] as String,
       fields[1] as int,
-      color: fields[2] as Color,
+      color: fields[3] as int,
     );
   }
 
@@ -31,7 +31,7 @@ class TeamDataAdapter extends TypeAdapter<TeamData> {
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.score)
-      ..writeByte(2)
+      ..writeByte(3)
       ..write(obj.color);
   }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
+import 'package:verbal_scoreboard/game/circle_color_picker.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 
 class TeamSettingsDialog extends StatelessWidget {
   final TextEditingController textFieldController;
-  final Function confirmCallback;
+  final Function(Color) confirmCallback;
   final Function cancelCallback;
   final TeamData teamData;
 
@@ -17,6 +17,7 @@ class TeamSettingsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color chosenColor = Color(teamData.color) ?? Theme.of(context).cardColor;
     return AlertDialog(
       title: Text("Team Settings ${teamData.name}"),
       content: Column(
@@ -29,6 +30,13 @@ class TeamSettingsDialog extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLength: 20,
           ),
+          Padding(
+            padding: EdgeInsets.only(top: 10),
+            child: Text("Pick Team Color:")
+          ),
+          CircleColorPicker(initialColor: chosenColor, colorListener: (value){
+            chosenColor = Color(value);
+          },)
         ],
       ),
       actions: [
@@ -48,7 +56,7 @@ class TeamSettingsDialog extends StatelessWidget {
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(Colors.green)),
           onPressed: () async {
-            if(confirmCallback != null) await confirmCallback();
+            if(confirmCallback != null) await confirmCallback(chosenColor);
             Navigator.pop(context);
           },
           child: Text(

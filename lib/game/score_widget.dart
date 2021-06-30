@@ -59,7 +59,7 @@ class ScoreWidget extends StatelessWidget {
       child: Material(
         borderRadius: BorderRadius.circular(10.0),
         elevation: 10.0,
-        color: Theme.of(context).cardColor,
+        color: Color(team.color) ?? Theme.of(context).cardColor,
         child: Column(
           children: [
             GestureDetector(
@@ -175,8 +175,9 @@ class ScoreWidget extends StatelessWidget {
           case _DialogChoice.settings:
             return TeamSettingsDialog(
               textFieldController: nameController,
-              confirmCallback: (){
+              confirmCallback: (newColor){
                 _game.teams[index].name = nameController.text;
+                _game.teams[index].color = newColor.value;
                 _game.save();
               },
               teamData: team,

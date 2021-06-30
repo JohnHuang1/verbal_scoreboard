@@ -11,8 +11,10 @@ class TeamData extends HiveObject{
   String name;
   @HiveField(1)
   int score;
-  @HiveField(2)
-  Color color;
+  @HiveField(3)
+  int color;
 
-  TeamData(this.name, this.score, {this.color = YellowColor});
+  TeamData(this.name, this.score, {this.color}){
+    if(this.color == null) this.color = YellowColor.value;
+  }
 }
