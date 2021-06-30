@@ -43,6 +43,9 @@ class _ListPageState extends State<ListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Theme.of(context).canvasColor,
+        focusColor: Theme.of(context).cardColor,
         child: Icon(Icons.add),
         onPressed: () {
           _displayDialog(context, DialogChoice.NewGame);

@@ -38,6 +38,7 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget> {
                   return;
                 },
                 child: SingleChildScrollView(
+                  physics: PageScrollPhysics(),
                   controller: scrollController,
                   child: Stack(
                     children: [
