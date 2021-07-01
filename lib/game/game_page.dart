@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
 import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
@@ -13,16 +14,17 @@ class GamePage extends StatefulWidget {
   GamePage(this._gameKey);
 
   @override
-  _GamePageState createState() => _GamePageState(this._gameKey);
+  _GamePageState createState() => _GamePageState();
 }
 
 class _GamePageState extends State<GamePage> {
   TextEditingController _editingController;
-  final dynamic _gameKey;
   bool _isEditingText = false;
+  bool historyExpanded = false;
+  FocusNode nameFocusNode = FocusNode();
 
-  _GamePageState(this._gameKey);
   String _initialText;
+
   @override
   void dispose() {
     _editingController.dispose();
@@ -34,31 +36,52 @@ class _GamePageState extends State<GamePage> {
     return ValueListenableBuilder<Box<GameData>>(
         valueListenable: Boxes.getGameDataBox().listenable(),
         builder: (context, box, _) {
-          final selectedGame = box.get(_gameKey);
-          return _buildContent(context, selectedGame);
+          final selectedGame = box.get(widget._gameKey);
+          return GestureDetector(
+            onTap: () {
+              FocusNode node = FocusManager.instance.primaryFocus;
+              if (node != null && node == nameFocusNode) {
+                _saveName(selectedGame);
+              }
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            child: _buildContent(context, selectedGame),
+          );
         });
   }
 
   Widget _buildContent(BuildContext context, GameData game) {
     _initialText = game?.name ?? "";
     _editingController = TextEditingController(text: _initialText);
+    final double iconButtonSplashRadius = 20;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          splashRadius: iconButtonSplashRadius,
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, false),
+        ),
         title: _editTitleTextField(_editingController, game),
         actions: [
           IconButton(
+            splashRadius: iconButtonSplashRadius,
             icon: Icon(Icons.history),
             onPressed: () {
-              //TODO show edit history
+              setState(() {
+                historyExpanded = !historyExpanded;
+              });
             },
           ),
           IconButton(
+            splashRadius: iconButtonSplashRadius,
             icon: Icon(Icons.delete),
             onPressed: () async {
-              bool result = await showDialog(builder: (context) {
-                return DeleteGameDialog(game);
-              }, context: context);
-              if(result) Navigator.pop(context, true);
+              bool result = await showDialog(
+                  builder: (context) {
+                    return DeleteGameDialog(game);
+                  },
+                  context: context);
+              if (result) Navigator.pop(context, true);
             },
           ),
         ],
@@ -70,13 +93,30 @@ class _GamePageState extends State<GamePage> {
           builder: (context, constraints) {
             return Stack(
               alignment: Alignment.topCenter,
-              children: game != null ? [
-              ScoreWidget(game, constraints),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: EditHistoryWidget(game),
-              ),
-              ] : [Container(child: Text("Game Missing"))]
+              children: game != null
+                  ? [
+                      ScoreWidget(game, constraints),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: EditHistoryWidget(
+                          game,
+                          expanded: historyExpanded,
+                          constraints: constraints,
+                          onCloseAction: () {
+                            setState(
+                              () {
+                                historyExpanded = false;
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ]
+                  : [
+                      Container(
+                        child: Text("Game Missing"),
+                      ),
+                    ],
             );
           },
         ),
@@ -84,31 +124,49 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Widget _editTitleTextField(TextEditingController _editingController, GameData game) {
+  Widget _editTitleTextField(
+      TextEditingController _editingController, GameData game) {
     if (_isEditingText)
       return Center(
         child: TextField(
-          style: TextStyle(color: Colors.white),
+          focusNode: nameFocusNode,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
           onSubmitted: (newValue) {
             setState(() {
-              _initialText = newValue;
-              game.name = newValue;
-              game.save();
-              _isEditingText = false;
+              _saveName(game);
             });
           },
           autofocus: true,
           controller: _editingController,
         ),
       );
-    return InkWell(
-        onTap: () {
-          setState(() {
-            _isEditingText = true;
-          });
-        },
-        child: Text(
-          _initialText,
-        ));
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(15.0),
+            onTap: () {
+              setState(() {
+                _isEditingText = true;
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+              child: Text(_initialText, style: TextStyle(fontSize: 20)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _saveName(GameData game) {
+    game.changeName(_editingController.text);
+    _initialText = _editingController.text;
+    _isEditingText = false;
   }
 }

@@ -7,104 +7,128 @@ import '../shared/style.dart';
 
 class EditHistoryWidget extends StatefulWidget {
   final GameData _gameData;
+  final bool expanded;
+  final BoxConstraints constraints;
+  final Function onCloseAction;
 
-  const EditHistoryWidget(this._gameData, {Key key}) : super(key: key);
+  const EditHistoryWidget(this._gameData,
+      {Key key, @required this.expanded, this.constraints, this.onCloseAction})
+      : super(key: key);
 
   @override
   _EditHistoryWidgetState createState() => _EditHistoryWidgetState();
 }
 
-class _EditHistoryWidgetState extends State<EditHistoryWidget> {
-  bool _expanded = false;
-
+class _EditHistoryWidgetState extends State<EditHistoryWidget>
+    with SingleTickerProviderStateMixin {
   double sheetTopMargin = 5;
   double sheetListHeight = 400;
   double sheetHeaderHeight = 50;
 
+  Duration duration = Duration(milliseconds: 500);
+
+  AnimationController expandController;
+
+  @override
+  void initState() {
+    super.initState();
+    expandController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+  }
+
+  @override
+  void didUpdateWidget(EditHistoryWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expanded) {
+      expandController.forward();
+    } else {
+      expandController.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    expandController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-
-    return SizedBox.expand(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return DraggableScrollableSheet(
-            initialChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
-            minChildSize: (sheetHeaderHeight + sheetTopMargin) / constraints.maxHeight,
-            maxChildSize: ((sheetHeaderHeight + sheetTopMargin + sheetListHeight) / constraints.maxHeight).clamp(0, 1.0) ,
-            builder: (context, scrollController) {
-              return NotificationListener<OverscrollIndicatorNotification>(
-                onNotification: (overscroll) {
-                  overscroll.disallowGlow();
-                  return;
-                },
-                child: SingleChildScrollView(
-                  physics: PageScrollPhysics(),
-                  controller: scrollController,
-                  child: Stack(
-                    children: [
-                      Container(
-                        // height: constraints.maxHeight - sheetHeaderHeight - sheetTopMargin,
-                        height: sheetListHeight,
-                        margin: EdgeInsets.only(top: sheetHeaderHeight + sheetTopMargin),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          // border:
-                          // Border(top: BorderSide(width: 2, color: Colors.grey)),
+    ThemeData theme = Theme.of(context);
+    return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.0, 1.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+            parent: expandController, curve: Curves.fastOutSlowIn)),
+        child: Column(
+          verticalDirection: VerticalDirection.up,
+          children: [
+            Container(
+              height: widget.constraints.maxHeight - sheetHeaderHeight,
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child:
+                  widget._gameData != null && widget._gameData.edits.isNotEmpty
+                      ? ListView.builder(
+                          physics: BouncingScrollPhysics(),
+                          itemCount: widget._gameData.edits.length,
+                          itemBuilder: (context, index) =>
+                              _historyBuilder(widget._gameData.edits.reversed.toList()[index]))
+                      : Center(child: Text("No Edit History")),
+            ),
+            GestureDetector(
+              child: Material(
+                child: InkWell(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Spacer(),
+                        Text(
+                          "Game History",
+                          style: TextStyle(fontSize: 20),
                         ),
-                        child: widget._gameData != null && widget._gameData.edits.isNotEmpty
-                            ? ListView.builder(
-                          controller: scrollController,
-                            physics: BouncingScrollPhysics(),
-                            itemCount: widget._gameData.edits.length,
-                            itemBuilder: (context, index) =>
-                                _historyBuilder(widget._gameData.edits[index]))
-                            : Center(child: Text("No Edit History")),
-                      ),
-                      Container(
-                        height: sheetHeaderHeight,
-                        margin: EdgeInsets.only(top: sheetTopMargin),
-                        child: Row(
-                          children: [
-                            Spacer(),
-                            Text("Score History"),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  child: Icon(_expanded
-                                      ? Icons.keyboard_arrow_down
-                                      : Icons.keyboard_arrow_up),
-                                  margin: EdgeInsets.symmetric(horizontal: 5),
-                                ),
-                              ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              child: Icon(widget.expanded
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_up),
+                              margin: EdgeInsets.symmetric(horizontal: 5),
                             ),
-                          ],
+                          ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).accentColor,
-                          borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(20)),
-                            border: Border.all(color: Theme.of(context).accentColor.darken(.3), width: 2.0,),
-                          boxShadow: [BoxShadow(
-                            blurRadius: 7,
-                            offset: Offset(0, 7),
-                            color: Colors.black38,
-                          ),]
-                        ),
-                        // foregroundDecoration: BoxDecoration(
-                        //   border: Border.all(color: Theme.of(context).accentColor.darken(.3), width: 2.0,),
-                        // ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  onTap: () {
+                    if (widget.onCloseAction != null) widget.onCloseAction();
+                  },
+                  highlightColor: theme.canvasColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
                 ),
-              );
-            },
-          );
-        },
-      ),
-    );
+                elevation: 16.0,
+                color: theme.cardColor,
+                shadowColor: theme.cardColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30))),
+              ),
+              onPanUpdate: (details) {
+                if (details.delta.dy > 0.8) {
+                  if (widget.onCloseAction != null) widget.onCloseAction();
+                }
+              },
+            )
+          ],
+        ));
   }
 
   Widget _historyBuilder(EditData data) {

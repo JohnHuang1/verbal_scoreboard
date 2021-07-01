@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:hive/hive.dart';
 import 'package:verbal_scoreboard/shared/style.dart';
 

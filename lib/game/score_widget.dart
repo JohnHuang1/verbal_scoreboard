@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_score_dialog.dart';
 import 'package:verbal_scoreboard/game/team_settings_dialog.dart';
+import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 
@@ -33,7 +34,6 @@ class ScoreWidget extends StatelessWidget {
         (rows / (_game.teams.length / 2).round());
     final height = (constraints.maxHeight -
             (teamNameHeight + buttonHeight + margin * 2) * rows -
-            editHistoryHeaderHeight -
             40) /
         rows;
     // final unitHeightValue = constraints.maxHeight * 0.01;
@@ -46,13 +46,14 @@ class ScoreWidget extends StatelessWidget {
         children: List.generate(
             _game.teams.length,
             (index) =>
-                _scoreCard(context, index, _game.teams[index], width, height)),
+                _scoreCard(context, index, _game.teams[index], width, height, _game.teams.length)),
       ),
     );
   }
 
   Widget _scoreCard(BuildContext context, int index, TeamData team,
-      double width, double height) {
+      double width, double height, int teamAmount) {
+    if(teamAmount == 3 && index == 2) width *= 2;
     return Padding(
       padding: EdgeInsets.only(top: 5),
       // padding: EdgeInsets.zero,
@@ -107,11 +108,11 @@ class ScoreWidget extends StatelessWidget {
               children: [
                 _changeScoreButton(Theme.of(context), index, width, Icons.add,
                     () {
-                  _addToTeam(index);
+                  _game.changeScore(index, 1);
                 }),
                 _changeScoreButton(
                     Theme.of(context), index, width, Icons.remove, () {
-                  _subtractFromTeam(index);
+                  _game.changeScore(index, -1);
                 }),
               ],
             ),
@@ -121,15 +122,6 @@ class ScoreWidget extends StatelessWidget {
     );
   }
 
-  _addToTeam(int index, {int score}) {
-    _game.teams[index].score += score ?? 1;
-    _game.save();
-  }
-
-  _subtractFromTeam(int index, {int score}) {
-    _game.teams[index].score -= score ?? 1;
-    _game.save();
-  }
 
   Widget _changeScoreButton(ThemeData theme, int index, double width,
       IconData icon, Function onPressed) {
@@ -167,8 +159,7 @@ class ScoreWidget extends StatelessWidget {
             return EditScoreDialog(
               textFieldController: scoreController,
               confirmCallback: () {
-                _game.teams[index].score = int.parse(scoreController.text);
-                _game.save();
+                _game.changeScore(index, int.parse(scoreController.text), originalValue: _game.teams[index].score);
               },
               teamData: team,
             );
@@ -176,9 +167,8 @@ class ScoreWidget extends StatelessWidget {
             return TeamSettingsDialog(
               textFieldController: nameController,
               confirmCallback: (newColor){
-                _game.teams[index].name = nameController.text;
-                _game.teams[index].color = newColor.value;
-                _game.save();
+                _game.changeTeamName(index, nameController.text);
+                _game.changeTeamColor(index, newColor.value);
               },
               teamData: team,
             );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
   ThemeData _theme() {
     return ThemeData(
       appBarTheme: AppBarTheme(
+        brightness: Brightness.dark,
         textTheme: TextTheme(headline6: AppBarTextStyle),
       ),
       textTheme: TextTheme(

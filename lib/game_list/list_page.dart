@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:verbal_scoreboard/game_list/game_list_item.dart';
 import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
+import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 import 'package:verbal_scoreboard/shared/routes.dart';
@@ -55,12 +57,13 @@ class _ListPageState extends State<ListPage> {
   }
 
   Future _addGame(String name, NumOfTeams numOfTeams) async {
+    DateTime time = DateTime.now();
     final game = GameData()
       ..name = name
-      ..dateCreated = DateTime.now()
+      ..dateCreated = time
       ..teams = List.generate(
           numOfTeams.toInt(), (index) => TeamData("Team ${(index + 1)}", 0, color: Theme.of(context).cardColor.value))
-      ..edits = [];
+      ..edits = [EditData("Game Created | Name: $name ", time)];
 
     final box = Boxes.getGameDataBox();
     box.add(game);
@@ -160,9 +163,11 @@ class _ListPageState extends State<ListPage> {
                         duration: const Duration(milliseconds: 500));
                   }
                 }
+                _radioValue = NumOfTeams.two;
                 _newGameTextFieldController.clear();
               },
               cancelCallback: () {
+                _radioValue = NumOfTeams.two;
                 _newGameTextFieldController.clear();
               },
               radioButtonCallback: (NumOfTeams value) {
