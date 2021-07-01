@@ -15,118 +15,168 @@ class ScoreWidget extends StatelessWidget {
   final double runSpacing = 6;
   final double spacing = 8;
   final double margin = 5;
-  final double teamNameHeight = 40;
-  final double buttonHeight = 50;
-  final double editHistoryHeaderHeight = 50;
+  final double teamNameHeight = 50;
+  final double verticalButtonHeight = 70;
+  final double cardPaddingVertical = 5;
+  final double cardPaddingHorizontal = 5;
+  final double buttonPadding = 5;
   final BoxConstraints constraints;
 
   TextEditingController scoreController;
   TextEditingController nameController;
+  bool vertical = false;
 
   ScoreWidget(this._game, this.constraints, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final width = (constraints.maxWidth -
-            (runSpacing + spacing) * (columns - 1) -
-            (margin) * columns) /
-        columns *
-        (rows / (_game.teams.length / 2).round());
-    final height = (constraints.maxHeight -
-            (teamNameHeight + buttonHeight + margin * 2) * rows -
-            40) /
-        rows;
-    // final unitHeightValue = constraints.maxHeight * 0.01;
+    double width;
+    double height;
+    vertical = constraints.maxHeight >= constraints.maxWidth;
+    height = constraints.maxHeight / 2 * (!vertical ? (4 / _game.teams.length ).round() : 1) - cardPaddingVertical * 2;
+    width = constraints.maxWidth / 2 * (vertical ? (4 / _game.teams.length ).round() : 1) - cardPaddingHorizontal * 2;
+    // if(vertical) {
+    //   width = (constraints.maxWidth -
+    //       (runSpacing + spacing) * (columns - 1) -
+    //       (margin) * columns) /
+    //       columns *
+    //       (rows / (_game.teams.length / 2).round());
+    //   height = (constraints.maxHeight -
+    //       (teamNameHeight + buttonHeight + margin * 2) * rows -
+    //       20) /
+    //       rows;
+    // } else {
+    //   height = constraints.maxHeight / 2;
+    //   width = constraints.maxWidth / 2;
+    // }
     return SingleChildScrollView(
+      scrollDirection: vertical ? Axis.vertical : Axis.horizontal,
       child: Wrap(
-        runAlignment: WrapAlignment.spaceAround,
-        runSpacing: runSpacing,
-        spacing: spacing,
+        direction: vertical ? Axis.horizontal : Axis.vertical,
+        // runAlignment: WrapAlignment.spaceAround,
+        // runSpacing: runSpacing,
+        // spacing: spacing,
         alignment: WrapAlignment.center,
         children: List.generate(
             _game.teams.length,
-            (index) =>
-                _scoreCard(context, index, _game.teams[index], width, height, _game.teams.length)),
+            (index) => _scoreCard(context, index, _game.teams[index], width,
+                height, _game.teams.length)),
       ),
     );
   }
 
   Widget _scoreCard(BuildContext context, int index, TeamData team,
       double width, double height, int teamAmount) {
-    if(teamAmount == 3 && index == 2) width *= 2;
-    return Padding(
-      padding: EdgeInsets.only(top: 5),
-      // padding: EdgeInsets.zero,
-      child: Material(
-        borderRadius: BorderRadius.circular(10.0),
-        elevation: 10.0,
-        color: Color(team.color) ?? Theme.of(context).cardColor,
-        child: Column(
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              child: Column(
-                children: [
-                  Container(
-                    height: teamNameHeight,
-                    child: FittedBox(
-                      fit: BoxFit.fitHeight,
-                      child: Text(
-                        team.name,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    padding: EdgeInsets.only(top: 10),
-                  ),
-                  Container(
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Text(
-                        team.score.toString(),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    width: width,
-                    height: height,
-                  )
-                ],
-              ),
-              onLongPress: () {
-                nameController =
-                    TextEditingController(text: team.name.toString());
-                _displayDialog(context, _DialogChoice.settings, team, index);
-              },
-              onDoubleTap: () {
-                scoreController =
-                    TextEditingController(text: team.score.toString());
-                _displayDialog(context, _DialogChoice.score, team, index);
-              },
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+    if (teamAmount == 3 && index == 2) {
+      if (vertical) {
+        width *= 2;
+        width += cardPaddingHorizontal * 2;
+      } else {
+        height *= 2;
+        height += cardPaddingVertical * 2;
+      }
+    }
+    return SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: cardPaddingVertical, horizontal: cardPaddingHorizontal),
+        // padding: EdgeInsets.zero,
+        child: Material(
+          borderRadius: BorderRadius.circular(10.0),
+          elevation: 10.0,
+          color: Color(team.color) ?? Theme.of(context).cardColor,
+          child: Container(
+            height: height,
+            width: width,
+            child: Column(
               children: [
-                _changeScoreButton(Theme.of(context), index, width, Icons.add,
-                    () {
-                  _game.changeScore(index, 1);
-                }),
-                _changeScoreButton(
-                    Theme.of(context), index, width, Icons.remove, () {
-                  _game.changeScore(index, -1);
-                }),
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: teamNameHeight,
+                        child: FittedBox(
+                          fit: BoxFit.fitHeight,
+                          child: Text(
+                            team.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        padding: EdgeInsets.only(top: 10),
+                      ),
+                      if (vertical)
+                        _getScore(team.score.toString(), width, height - teamNameHeight - verticalButtonHeight)
+                      else
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _getScore(team.score.toString(), width / 2, height - teamNameHeight),
+                            Column(
+                              children: _getControlButtonList(
+                                  Theme.of(context), index, width / 2, (height - teamNameHeight) / 2),
+                            )
+                          ],
+                        )
+                    ],
+                  ),
+                  onLongPress: () {
+                    nameController =
+                        TextEditingController(text: team.name.toString());
+                    _displayDialog(context, _DialogChoice.settings, team, index);
+                  },
+                  onDoubleTap: () {
+                    scoreController =
+                        TextEditingController(text: team.score.toString());
+                    _displayDialog(context, _DialogChoice.score, team, index);
+                  },
+                ),
+                if (vertical)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                    _getControlButtonList(Theme.of(context), index, width, verticalButtonHeight),
+                  ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  List<Widget> _getControlButtonList(ThemeData theme, int index, double width, double height) {
+    height -= buttonPadding * 2;
+    width -= buttonPadding * 2;
+    return [
+      _changeScoreButton(theme, index, width, height, Icons.add, () {
+        _game.changeScore(index, 1);
+      }),
+      _changeScoreButton(theme, index, width, height, Icons.remove, () {
+        _game.changeScore(index, -1);
+      }),
+    ];
+  }
 
-  Widget _changeScoreButton(ThemeData theme, int index, double width,
+  Widget _getScore(String score, double width, double height) {
+    return Container(
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Text(
+          score,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      width: width,
+      height: height,
+    );
+  }
+
+  Widget _changeScoreButton(ThemeData theme, int index, double width, double height,
       IconData icon, Function onPressed) {
     return Container(
-      height: buttonHeight,
+      height: height,
       child: TextButton(
         onPressed: () {
           onPressed();
@@ -145,7 +195,7 @@ class ScoreWidget extends StatelessWidget {
         color: theme.primaryColor,
         borderRadius: BorderRadius.all(Radius.circular(10.0)),
       ),
-      margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      margin: EdgeInsets.symmetric(vertical: buttonPadding, horizontal: buttonPadding),
     );
   }
 
@@ -154,19 +204,20 @@ class ScoreWidget extends StatelessWidget {
     return showDialog(
       context: context,
       builder: (context) {
-        switch(choice){
+        switch (choice) {
           case _DialogChoice.score:
             return EditScoreDialog(
               textFieldController: scoreController,
               confirmCallback: () {
-                _game.changeScore(index, int.parse(scoreController.text), originalValue: _game.teams[index].score);
+                _game.changeScore(index, int.parse(scoreController.text),
+                    originalValue: _game.teams[index].score);
               },
               teamData: team,
             );
           case _DialogChoice.settings:
             return TeamSettingsDialog(
               textFieldController: nameController,
-              confirmCallback: (newColor){
+              confirmCallback: (newColor) {
                 _game.changeTeamName(index, nameController.text);
                 _game.changeTeamColor(index, newColor.value);
               },

@@ -21,7 +21,7 @@ class TeamSettingsDialog extends StatelessWidget {
     return AlertDialog(
       title: Text("Team Settings ${teamData.name}"),
       content: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
+        // physics: PageScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

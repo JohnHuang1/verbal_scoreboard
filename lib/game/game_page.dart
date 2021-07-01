@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
 import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
+import 'package:verbal_scoreboard/game_list/mic_widget.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -21,6 +22,7 @@ class _GamePageState extends State<GamePage> {
   TextEditingController _editingController;
   bool _isEditingText = false;
   bool historyExpanded = false;
+  bool _micOn = false;
   FocusNode nameFocusNode = FocusNode();
 
   String _initialText;
@@ -64,6 +66,14 @@ class _GamePageState extends State<GamePage> {
         title: _editTitleTextField(_editingController, game),
         actions: [
           IconButton(
+            icon: Icon(_micOn ? Icons.mic : Icons.mic_off),
+            onPressed: () {
+              setState(() {
+                _micOn = !_micOn;
+              });
+            },
+          ),
+          IconButton(
             splashRadius: iconButtonSplashRadius,
             icon: Icon(Icons.history),
             onPressed: () {
@@ -96,6 +106,13 @@ class _GamePageState extends State<GamePage> {
               children: game != null
                   ? [
                       ScoreWidget(game, constraints),
+                      IgnorePointer(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child:
+                          MicWidget(show: _micOn, constraints: constraints),
+                        ),
+                      ),
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: EditHistoryWidget(
