@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
 import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
@@ -66,6 +65,7 @@ class _GamePageState extends State<GamePage> {
         title: _editTitleTextField(_editingController, game),
         actions: [
           IconButton(
+            splashRadius: iconButtonSplashRadius,
             icon: Icon(_micOn ? Icons.mic : Icons.mic_off),
             onPressed: () {
               setState(() {

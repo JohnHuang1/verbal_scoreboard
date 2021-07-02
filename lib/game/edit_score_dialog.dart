@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:verbal_scoreboard/game_list/team_radio_buttons.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 
 class EditScoreDialog extends StatelessWidget {

@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_score_dialog.dart';
 import 'package:verbal_scoreboard/game/team_settings_dialog.dart';
-import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 
 enum _DialogChoice { settings, score }
 
 class ScoreWidget extends StatelessWidget {
-  final double boxSize = 100;
   final GameData _game;
-  final columns = 2;
-  final rows = 2;
-  final double runSpacing = 6;
-  final double spacing = 8;
-  final double margin = 5;
   final double teamNameHeight = 50;
   final double verticalButtonHeight = 70;
   final double cardPaddingVertical = 5;
@@ -33,29 +26,18 @@ class ScoreWidget extends StatelessWidget {
     double width;
     double height;
     vertical = constraints.maxHeight >= constraints.maxWidth;
-    height = constraints.maxHeight / 2 * (!vertical ? (4 / _game.teams.length ).round() : 1) - cardPaddingVertical * 2;
-    width = constraints.maxWidth / 2 * (vertical ? (4 / _game.teams.length ).round() : 1) - cardPaddingHorizontal * 2;
-    // if(vertical) {
-    //   width = (constraints.maxWidth -
-    //       (runSpacing + spacing) * (columns - 1) -
-    //       (margin) * columns) /
-    //       columns *
-    //       (rows / (_game.teams.length / 2).round());
-    //   height = (constraints.maxHeight -
-    //       (teamNameHeight + buttonHeight + margin * 2) * rows -
-    //       20) /
-    //       rows;
-    // } else {
-    //   height = constraints.maxHeight / 2;
-    //   width = constraints.maxWidth / 2;
-    // }
+    height = constraints.maxHeight /
+            2 *
+            (!vertical ? (4 / _game.teams.length).round() : 1) -
+        cardPaddingVertical * 2;
+    width = constraints.maxWidth /
+            2 *
+            (vertical ? (4 / _game.teams.length).round() : 1) -
+        cardPaddingHorizontal * 2;
     return SingleChildScrollView(
       scrollDirection: vertical ? Axis.vertical : Axis.horizontal,
       child: Wrap(
         direction: vertical ? Axis.horizontal : Axis.vertical,
-        // runAlignment: WrapAlignment.spaceAround,
-        // runSpacing: runSpacing,
-        // spacing: spacing,
         alignment: WrapAlignment.center,
         children: List.generate(
             _game.teams.length,
@@ -79,8 +61,8 @@ class ScoreWidget extends StatelessWidget {
     return SingleChildScrollView(
       physics: NeverScrollableScrollPhysics(),
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: cardPaddingVertical, horizontal: cardPaddingHorizontal),
-        // padding: EdgeInsets.zero,
+        padding: EdgeInsets.symmetric(
+            vertical: cardPaddingVertical, horizontal: cardPaddingHorizontal),
         child: Material(
           borderRadius: BorderRadius.circular(10.0),
           elevation: 10.0,
@@ -91,39 +73,22 @@ class ScoreWidget extends StatelessWidget {
             child: Column(
               children: [
                 GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: teamNameHeight,
-                        child: FittedBox(
-                          fit: BoxFit.fitHeight,
-                          child: Text(
-                            team.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        padding: EdgeInsets.only(top: 10),
+                  child: Container(
+                    height: teamNameHeight,
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: Text(
+                        team.name,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (vertical)
-                        _getScore(team.score.toString(), width, height - teamNameHeight - verticalButtonHeight)
-                      else
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _getScore(team.score.toString(), width / 2, height - teamNameHeight),
-                            Column(
-                              children: _getControlButtonList(
-                                  Theme.of(context), index, width / 2, (height - teamNameHeight) / 2),
-                            )
-                          ],
-                        )
-                    ],
+                    ),
+                    padding: EdgeInsets.only(top: 10),
                   ),
                   onLongPress: () {
                     nameController =
                         TextEditingController(text: team.name.toString());
-                    _displayDialog(context, _DialogChoice.settings, team, index);
+                    _displayDialog(
+                        context, _DialogChoice.settings, team, index);
                   },
                   onDoubleTap: () {
                     scoreController =
@@ -132,10 +97,25 @@ class ScoreWidget extends StatelessWidget {
                   },
                 ),
                 if (vertical)
+                  _getScore(context, team, index, width,
+                      height - teamNameHeight - verticalButtonHeight)
+                else
                   Row(
                     mainAxisSize: MainAxisSize.min,
-                    children:
-                    _getControlButtonList(Theme.of(context), index, width, verticalButtonHeight),
+                    children: [
+                      _getScore(context, team, index, width / 2,
+                          height - teamNameHeight),
+                      Column(
+                        children: _getControlButtonList(Theme.of(context),
+                            index, width / 2, (height - teamNameHeight) / 2),
+                      )
+                    ],
+                  ),
+                if (vertical)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _getControlButtonList(
+                        Theme.of(context), index, width, verticalButtonHeight),
                   ),
               ],
             ),
@@ -145,7 +125,8 @@ class ScoreWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> _getControlButtonList(ThemeData theme, int index, double width, double height) {
+  List<Widget> _getControlButtonList(
+      ThemeData theme, int index, double width, double height) {
     height -= buttonPadding * 2;
     width -= buttonPadding * 2;
     return [
@@ -158,23 +139,33 @@ class ScoreWidget extends StatelessWidget {
     ];
   }
 
-  Widget _getScore(String score, double width, double height) {
-    return Container(
+  Widget _getScore(BuildContext context, TeamData team, index, double width, double height) {
+    return GestureDetector(child: Container(
       child: FittedBox(
         fit: BoxFit.contain,
         child: Text(
-          score,
+          team.score.toString(),
           textAlign: TextAlign.center,
         ),
       ),
       padding: EdgeInsets.symmetric(horizontal: 10),
       width: width,
       height: height,
-    );
+    ),
+      onLongPress: () {
+        nameController =
+            TextEditingController(text: team.name.toString());
+        _displayDialog(context, _DialogChoice.settings, team, index);
+      },
+      onDoubleTap: () {
+        scoreController =
+            TextEditingController(text: team.score.toString());
+        _displayDialog(context, _DialogChoice.score, team, index);
+      },);
   }
 
-  Widget _changeScoreButton(ThemeData theme, int index, double width, double height,
-      IconData icon, Function onPressed) {
+  Widget _changeScoreButton(ThemeData theme, int index, double width,
+      double height, IconData icon, Function onPressed) {
     return Container(
       height: height,
       child: TextButton(
@@ -195,7 +186,8 @@ class ScoreWidget extends StatelessWidget {
         color: theme.primaryColor,
         borderRadius: BorderRadius.all(Radius.circular(10.0)),
       ),
-      margin: EdgeInsets.symmetric(vertical: buttonPadding, horizontal: buttonPadding),
+      margin: EdgeInsets.symmetric(
+          vertical: buttonPadding, horizontal: buttonPadding),
     );
   }
 

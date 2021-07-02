@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:verbal_scoreboard/models/edit_data.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
-import '../shared/style.dart';
 
 class EditHistoryWidget extends StatefulWidget {
   final GameData _gameData;
@@ -81,7 +80,8 @@ class _EditHistoryWidgetState extends State<EditHistoryWidget>
             GestureDetector(
               child: Material(
                 child: InkWell(
-                  child: Padding(
+                  child: Container(
+                    height: sheetHeaderHeight,
                     padding: EdgeInsets.symmetric(vertical: 12.0),
                     child: Row(
                       children: [

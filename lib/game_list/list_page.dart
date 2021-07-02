@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:verbal_scoreboard/game_list/game_list_item.dart';
@@ -33,7 +32,7 @@ class _ListPageState extends State<ListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Center(
-          child: Text("List Page"),
+          child: Text("Games"),
         ),
       ),
       body: ValueListenableBuilder<Box<GameData>>(

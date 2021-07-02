@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:verbal_scoreboard/game/circle_color_picker.dart';
 import 'package:verbal_scoreboard/models/team_data.dart';
 
