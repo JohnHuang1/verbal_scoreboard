@@ -5,6 +5,8 @@ import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
 import 'package:verbal_scoreboard/game_list/mic_widget.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:porcupine/porcupine_manager.dart';
+import 'package:porcupine/porcupine_error.dart';
 
 import '../boxes.dart';
 
@@ -23,6 +25,7 @@ class _GamePageState extends State<GamePage> {
   bool historyExpanded = false;
   bool _micOn = false;
   FocusNode nameFocusNode = FocusNode();
+  PorcupineManager _porcupineManager;
 
   String _initialText;
 
@@ -30,6 +33,15 @@ class _GamePageState extends State<GamePage> {
   void dispose() {
     _editingController.dispose();
     super.dispose();
+  }
+
+  void createPorcupineManager() async {
+    try {
+      _porcupineManager =
+          await PorcupineManager.fromKeywords(["jarvis"], _wakeWordCallback);
+    } on PvError catch (err) {
+      // handle porcupine init error
+    }
   }
 
   @override
@@ -67,10 +79,21 @@ class _GamePageState extends State<GamePage> {
           IconButton(
             splashRadius: iconButtonSplashRadius,
             icon: Icon(_micOn ? Icons.mic : Icons.mic_off),
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 _micOn = !_micOn;
               });
+              if (_micOn = true) {
+                try {
+                  await _porcupineManager.start();
+                } on PvAudioException catch (ex) {
+                  // deal with either audio exception
+                }
+                // .. use porcupine
+                await _porcupineManager.stop();
+              } else {
+                await _porcupineManager.delete();
+              }
             },
           ),
           IconButton(
@@ -110,7 +133,7 @@ class _GamePageState extends State<GamePage> {
                         child: Align(
                           alignment: Alignment.center,
                           child:
-                          MicWidget(show: _micOn, constraints: constraints),
+                              MicWidget(show: _micOn, constraints: constraints),
                         ),
                       ),
                       Align(
@@ -185,5 +208,13 @@ class _GamePageState extends State<GamePage> {
     game.changeName(_editingController.text);
     _initialText = _editingController.text;
     _isEditingText = false;
+  }
+
+  void _wakeWordCallback(int keywordIndex) {
+    if (keywordIndex == 0) {
+      // picovoice detected
+    } else if (keywordIndex == 1) {
+      // porcupine detected
+    }
   }
 }
