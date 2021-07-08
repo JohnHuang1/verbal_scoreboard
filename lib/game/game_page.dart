@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
+import 'package:verbal_scoreboard/game/jarvis_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
 import 'package:verbal_scoreboard/game_list/delete_game_dialog.dart';
-import 'package:verbal_scoreboard/game_list/mic_widget.dart';
+import 'mic_widget.dart';
 import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:porcupine/porcupine_manager.dart';
@@ -24,6 +25,7 @@ class _GamePageState extends State<GamePage> {
   bool _isEditingText = false;
   bool historyExpanded = false;
   bool _micOn = false;
+  bool _jarvisOn = false;
   FocusNode nameFocusNode = FocusNode();
   PorcupineManager _porcupineManager;
 
@@ -35,6 +37,7 @@ class _GamePageState extends State<GamePage> {
     super.dispose();
   }
 
+  //TODO: this initilizer function isn't called anywhere. try calling it in the lifecycle callback initSate();
   void createPorcupineManager() async {
     try {
       _porcupineManager =
@@ -78,21 +81,24 @@ class _GamePageState extends State<GamePage> {
         actions: [
           IconButton(
             splashRadius: iconButtonSplashRadius,
-            icon: Icon(_micOn ? Icons.mic : Icons.mic_off),
+            icon: Icon(_jarvisOn ? Icons.mic_off : Icons.mic ),
             onPressed: () async {
               setState(() {
-                _micOn = !_micOn;
+                _jarvisOn = !_jarvisOn;
               });
-              if (_micOn = true) {
+
+              if (_micOn == true) {
                 try {
                   await _porcupineManager.start();
                 } on PvAudioException catch (ex) {
                   // deal with either audio exception
                 }
                 // .. use porcupine
+                // TODO: _porcupineManager.stop() should be called when _jarvisOn is changed to false
                 await _porcupineManager.stop();
               } else {
-                await _porcupineManager.delete();
+                // TODO: _porcupineManager.delete() should be called in the lifecycle callback dispose();
+                // await _porcupineManager.delete();
               }
             },
           ),
@@ -129,6 +135,15 @@ class _GamePageState extends State<GamePage> {
               children: game != null
                   ? [
                       ScoreWidget(game, constraints),
+                      IgnorePointer(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: JarvisWidget(
+                              show: _jarvisOn,
+                              hide: _micOn,
+                              constraints: constraints),
+                        ),
+                      ),
                       IgnorePointer(
                         child: Align(
                           alignment: Alignment.center,
