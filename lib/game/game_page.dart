@@ -8,6 +8,7 @@ import 'package:verbal_scoreboard/models/game_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:porcupine/porcupine_manager.dart';
 import 'package:porcupine/porcupine_error.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../boxes.dart';
 
@@ -28,6 +29,8 @@ class _GamePageState extends State<GamePage> {
   bool _jarvisOn = false;
   FocusNode nameFocusNode = FocusNode();
   PorcupineManager _porcupineManager;
+  stt.SpeechToText _speech;
+  bool _isListening = false;
 
   String _initialText;
 
@@ -81,7 +84,7 @@ class _GamePageState extends State<GamePage> {
         actions: [
           IconButton(
             splashRadius: iconButtonSplashRadius,
-            icon: Icon(_jarvisOn ? Icons.mic_off : Icons.mic ),
+            icon: Icon(_jarvisOn ? Icons.mic_off : Icons.mic),
             onPressed: () async {
               setState(() {
                 _jarvisOn = !_jarvisOn;
@@ -93,7 +96,6 @@ class _GamePageState extends State<GamePage> {
                 } on PvAudioException catch (ex) {
                   // deal with either audio exception
                 }
-                // .. use porcupine
                 // TODO: _porcupineManager.stop() should be called when _jarvisOn is changed to false
                 await _porcupineManager.stop();
               } else {
@@ -227,9 +229,29 @@ class _GamePageState extends State<GamePage> {
 
   void _wakeWordCallback(int keywordIndex) {
     if (keywordIndex == 0) {
-      // picovoice detected
-    } else if (keywordIndex == 1) {
-      // porcupine detected
+      // Jarvis detected
+      _speech = stt.SpeechToText();
+      _listen();
+    }
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) => print('onStatus: $val'),
+        onError: (val) => print('onError: $val'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) => setState(() {
+            //val.recognizedWords;     This is where we check for points
+          }),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
     }
   }
 }
