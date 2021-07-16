@@ -58,7 +58,7 @@ class _JarvisWidgetState extends State<JarvisWidget>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: Tween(
-        begin: Offset(0.0, -4.0),
+        begin: Offset(0.0, -6.0),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _animationController,

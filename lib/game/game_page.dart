@@ -25,22 +25,29 @@ class _GamePageState extends State<GamePage> {
   TextEditingController _editingController;
   bool _isEditingText = false;
   bool historyExpanded = false;
-  bool _micOn = false;
   bool _jarvisOn = false;
   FocusNode nameFocusNode = FocusNode();
   PorcupineManager _porcupineManager;
   stt.SpeechToText _speech;
   bool _isListening = false;
+  String _command = "";
 
   String _initialText;
 
   @override
+  void initState() {
+    super.initState();
+    createPorcupineManager();
+    _speech = stt.SpeechToText();
+  }
+
+  @override
   void dispose() {
     _editingController.dispose();
+    _porcupineManager.delete();
     super.dispose();
   }
 
-  //TODO: this initilizer function isn't called anywhere. try calling it in the lifecycle callback initSate();
   void createPorcupineManager() async {
     try {
       _porcupineManager =
@@ -90,17 +97,14 @@ class _GamePageState extends State<GamePage> {
                 _jarvisOn = !_jarvisOn;
               });
 
-              if (_micOn == true) {
+              if (_jarvisOn == true) {
                 try {
                   await _porcupineManager.start();
                 } on PvAudioException catch (ex) {
                   // deal with either audio exception
                 }
-                // TODO: _porcupineManager.stop() should be called when _jarvisOn is changed to false
-                await _porcupineManager.stop();
               } else {
-                // TODO: _porcupineManager.delete() should be called in the lifecycle callback dispose();
-                // await _porcupineManager.delete();
+                await _porcupineManager.stop();
               }
             },
           ),
@@ -142,15 +146,15 @@ class _GamePageState extends State<GamePage> {
                           alignment: Alignment.center,
                           child: JarvisWidget(
                               show: _jarvisOn,
-                              hide: _micOn,
+                              hide: _isListening,
                               constraints: constraints),
                         ),
                       ),
                       IgnorePointer(
                         child: Align(
                           alignment: Alignment.center,
-                          child:
-                              MicWidget(show: _micOn, constraints: constraints),
+                          child: MicWidget(
+                              show: _isListening, constraints: constraints),
                         ),
                       ),
                       Align(
@@ -229,29 +233,83 @@ class _GamePageState extends State<GamePage> {
 
   void _wakeWordCallback(int keywordIndex) {
     if (keywordIndex == 0) {
-      // Jarvis detected
-      _speech = stt.SpeechToText();
       _listen();
     }
   }
 
   void _listen() async {
+    await _porcupineManager.stop();
     if (!_isListening) {
       bool available = await _speech.initialize(
-        onStatus: (val) => print('onStatus: $val'),
-        onError: (val) => print('onError: $val'),
+        onStatus: (val) {
+          if(val == stt.SpeechToText.notListeningStatus){
+            print("notListeningStatusCondition Reached");
+            stopListening();
+          }
+          print('onStatus: $val');
+        },
+        onError: (val) {
+          _command = "";
+          stopListening();
+          print('onError: $val');
+        },
       );
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
-          onResult: (val) => setState(() {
-            //val.recognizedWords;     This is where we check for points
-          }),
+          onResult: (val) {
+            _command = val.recognizedWords;
+          },
         );
       }
     } else {
-      setState(() => _isListening = false);
-      _speech.stop();
+      _command = "";
+      stopListening();
     }
   }
+
+  void stopListening() async {
+    setState(() => _isListening = false);
+    _speech.stop();
+    parseSpeech();
+    await _porcupineManager.start();
+  }
+
+  void parseSpeech(){
+    if(_command.length > 0){
+      List words = _command.split(" ").map((element) {
+        return convStrToNum(element.toLowerCase());
+      }).toList();
+      if(words.length > 0){
+        if(words.contains("team")){
+          try{
+            int teamNum = int.parse(words[words.indexOf("team") + 1]);
+            //TODO: add one point to which ever team is said.
+          } catch (ex){
+
+          }
+        }
+      }
+    }
+  }
+
+  String convStrToNum(String str) {
+    var nums = <String, String> {
+      'one': '1',
+      'two': '2',
+      'three': '3',
+      'four': '4',
+      'five': '5',
+      'six': '6',
+      'seven': '7',
+      'eight': '8',
+      'nine': '9',
+      'ten': '10',
+    };
+    if (nums.keys.contains(str)) {
+      return nums[str];
+    }
+    return str;
+  }
+
 }
