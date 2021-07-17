@@ -263,8 +263,8 @@ class _GamePageState extends State<GamePage> {
 
   void _wakeWordCallback(int keywordIndex) async {
     vol = await VolumeControl.volume;
-    if(vol > .1) VolumeControl.setVolume(0.1);
-    await Future.delayed(Duration(milliseconds: 200), (){});
+    if (vol > .1) VolumeControl.setVolume(0.1);
+    await Future.delayed(Duration(milliseconds: 200), () {});
     if (keywordIndex == 0) {
       _listen();
     }
@@ -282,7 +282,9 @@ class _GamePageState extends State<GamePage> {
           print('onStatus: $val');
         },
         onError: (val) {
-          _isListening = false;
+          setState(() {
+            _isListening = false;
+          });
           print('onError: $val');
         },
       );
@@ -292,7 +294,7 @@ class _GamePageState extends State<GamePage> {
           onResult: (val) {
             _command = val.recognizedWords;
             print("onResult = $_command");
-            if(!_isListening) stopListening();
+            if (!_isListening) stopListening();
           },
         );
       }
@@ -305,7 +307,7 @@ class _GamePageState extends State<GamePage> {
     setState(() => _isListening = false);
     _speech.stop();
     VolumeControl.setVolume(vol);
-    if(!await parseSpeech()) {
+    if (!await parseSpeech()) {
       _porcupineManager.start();
     }
     _command = "";
@@ -362,10 +364,10 @@ class _GamePageState extends State<GamePage> {
         } else if (words.contains("end")) {
           //TODO: Do we really need this?
           // if (words[words.indexOf("end") + 1] == "game") {}
-        } else if(words.contains("shut")){
+        } else if (words.contains("shut")) {
           // Shutdown jarvis
           print("Shutdown jarvis");
-          if(words[words.indexOf("shut") + 1] == "down"){
+          if (words[words.indexOf("shut") + 1] == "down") {
             print("Shutdown jarvis 2");
             await speak("Shutting systems down");
             setState(() {
@@ -373,8 +375,7 @@ class _GamePageState extends State<GamePage> {
             });
             return true;
           }
-        }
-        else {
+        } else {
           // Catch all didn't understands
           print("Catch all didn't understands");
           await speak("What did you say sir?");
