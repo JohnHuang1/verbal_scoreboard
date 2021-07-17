@@ -207,6 +207,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_tts:
+    dependency: "direct main"
+    description:
+      name: flutter_tts
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.1"
   flutter_voice_processor:
     dependency: transitive
     description:
@@ -553,6 +560,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  volume_control:
+    dependency: "direct main"
+    description:
+      name: volume_control
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.5"
   watcher:
     dependency: transitive
     description:
@@ -590,4 +604,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.13.0 <3.0.0"
-  flutter: ">=1.20.0"
+  flutter: ">=1.22.0"

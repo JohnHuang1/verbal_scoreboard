@@ -32,6 +32,8 @@ dependencies:
   hive: ^2.0.4
   hive_flutter: ^1.1.0
   speech_to_text: ^4.2.0
+  flutter_tts: ^3.2.1
+  volume_control: ^0.1.5
 
 dev_dependencies:
   build_runner: ^2.0.5

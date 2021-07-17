@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/jarvis_widget.dart';
@@ -9,6 +11,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:porcupine/porcupine_manager.dart';
 import 'package:porcupine/porcupine_error.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:volume_control/volume_control.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import '../boxes.dart';
 
@@ -22,6 +26,10 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
+  double vol;
+  final FlutterTts flutterTts = FlutterTts();
+  final Random random = new Random();
+
   TextEditingController _editingController;
   bool _isEditingText = false;
   bool historyExpanded = false;
@@ -31,12 +39,16 @@ class _GamePageState extends State<GamePage> {
   stt.SpeechToText _speech;
   bool _isListening = false;
   String _command = "";
+  int totalTeams = 0;
+  GameData currentGame;
 
   String _initialText;
 
   @override
   void initState() {
     super.initState();
+    loadVolume();
+    speechInit();
     createPorcupineManager();
     _speech = stt.SpeechToText();
   }
@@ -48,6 +60,16 @@ class _GamePageState extends State<GamePage> {
     super.dispose();
   }
 
+  void loadVolume() async {
+    vol = await VolumeControl.volume;
+  }
+
+  void speechInit() async {
+    // await flutterTts.setLanguage("en-GB");
+    await flutterTts.setVoice({"name": "en-gb-x-gbd-local", "locale": "en-GB"});
+    await flutterTts.setSpeechRate(0.7);
+  }
+
   void createPorcupineManager() async {
     try {
       _porcupineManager =
@@ -57,12 +79,17 @@ class _GamePageState extends State<GamePage> {
     }
   }
 
+  Future<void> speak(String text) async {
+    await flutterTts.speak(text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Box<GameData>>(
         valueListenable: Boxes.getGameDataBox().listenable(),
         builder: (context, box, _) {
           final selectedGame = box.get(widget._gameKey);
+          currentGame = selectedGame;
           return GestureDetector(
             onTap: () {
               FocusNode node = FocusManager.instance.primaryFocus;
@@ -79,6 +106,7 @@ class _GamePageState extends State<GamePage> {
   Widget _buildContent(BuildContext context, GameData game) {
     _initialText = game?.name ?? "";
     _editingController = TextEditingController(text: _initialText);
+    totalTeams = game.teams.length;
     final double iconButtonSplashRadius = 20;
     return Scaffold(
       appBar: AppBar(
@@ -99,11 +127,13 @@ class _GamePageState extends State<GamePage> {
 
               if (_jarvisOn == true) {
                 try {
+                  speak("Hello sir.");
                   await _porcupineManager.start();
                 } on PvAudioException catch (ex) {
                   // deal with either audio exception
                 }
               } else {
+                speak("Shutting systems down.");
                 await _porcupineManager.stop();
               }
             },
@@ -231,7 +261,10 @@ class _GamePageState extends State<GamePage> {
     _isEditingText = false;
   }
 
-  void _wakeWordCallback(int keywordIndex) {
+  void _wakeWordCallback(int keywordIndex) async {
+    vol = await VolumeControl.volume;
+    if(vol > .1) VolumeControl.setVolume(0.1);
+    await Future.delayed(Duration(milliseconds: 200), (){});
     if (keywordIndex == 0) {
       _listen();
     }
@@ -244,13 +277,12 @@ class _GamePageState extends State<GamePage> {
         onStatus: (val) {
           if (val == stt.SpeechToText.notListeningStatus) {
             print("notListeningStatusCondition Reached");
-            stopListening();
+            _isListening = false;
           }
           print('onStatus: $val');
         },
         onError: (val) {
-          _command = "";
-          stopListening();
+          _isListening = false;
           print('onError: $val');
         },
       );
@@ -259,11 +291,12 @@ class _GamePageState extends State<GamePage> {
         _speech.listen(
           onResult: (val) {
             _command = val.recognizedWords;
+            print("onResult = $_command");
+            if(!_isListening) stopListening();
           },
         );
       }
     } else {
-      _command = "";
       stopListening();
     }
   }
@@ -271,39 +304,84 @@ class _GamePageState extends State<GamePage> {
   void stopListening() async {
     setState(() => _isListening = false);
     _speech.stop();
-    parseSpeech();
-    await _porcupineManager.start();
+    VolumeControl.setVolume(vol);
+    if(!await parseSpeech()) {
+      _porcupineManager.start();
+    }
+    _command = "";
   }
 
-  void parseSpeech() {
+  Future<bool> parseSpeech() async {
+    print("parseSpeech: Command = $_command");
     if (_command.length > 0) {
       List words = _command.split(" ").map((element) {
         return convStrToNum(element.toLowerCase());
       }).toList();
+      print("parseSpeech: words = ${words.toString()}");
       if (words.length > 0) {
-        //Add commands here
         if (words.contains("team")) {
-          if (words[words.indexOf("team") - 1] == "subtract") {
-            try {
-              int teamNum = int.parse(words[words.indexOf("team") + 1]);
-              //TODO: Subtract one point to which ever team is said.
-            } catch (ex) {}
-          } else {
-            try {
-              int teamNum = int.parse(words[words.indexOf("team") + 1]);
-              //TODO: add one point to which ever team is said.
-            } catch (ex) {}
+          // add/subtract 1 point
+          print("add/subtract reached");
+          try {
+            int teamNum = int.tryParse(words[words.indexOf("team") + 1]) ??
+                (throw Exception("Could not understand team number"));
+            if (teamNum > 0 && teamNum <= totalTeams) {
+              String speech = "one point ";
+              if (words.contains("subtract")) {
+                currentGame.changeScore(teamNum - 1, -1);
+                speech += "taken from ";
+              } else {
+                currentGame.changeScore(teamNum - 1, 1);
+                speech += "added to ";
+              }
+              print(speech + "team $teamNum");
+              await speak(speech + "team $teamNum");
+            } else {
+              throw Exception("Team number not in range");
+            }
+          } catch (ex) {
+            print((ex as Exception).toString());
+            await speak((ex as Exception).toString());
+            return false;
+          }
+        } else if (words.contains("score")) {
+          // read score
+          print("readScore");
+          String speech = "";
+          currentGame.teams.forEach((element) {
+            speech +=
+                "${element.name} has ${element.score} point${element.score == 1 ? "" : "s"}. ";
+          });
+          print(speech);
+          await speak(speech);
+        } else if (words.contains("randomize")) {
+          // Choose random team
+          print("Choose random team");
+          int teamNum = random.nextInt(totalTeams) + 1;
+          await speak("team $teamNum has been chosen");
+        } else if (words.contains("end")) {
+          //TODO: Do we really need this?
+          // if (words[words.indexOf("end") + 1] == "game") {}
+        } else if(words.contains("shut")){
+          // Shutdown jarvis
+          print("Shutdown jarvis");
+          if(words[words.indexOf("shut") + 1] == "down"){
+            print("Shutdown jarvis 2");
+            await speak("Shutting systems down");
+            setState(() {
+              _jarvisOn = false;
+            });
+            return true;
           }
         }
-        if (words.contains("score")) {
-          //TODO: Announce Score?
-        }
-
-        if (words.contains("game end")) {
-          //TODO: Stop listening, end game
+        else {
+          // Catch all didn't understands
+          print("Catch all didn't understands");
+          await speak("What did you say sir?");
         }
       }
     }
+    return false;
   }
 
   String convStrToNum(String str) {
