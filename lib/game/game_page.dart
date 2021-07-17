@@ -242,7 +242,7 @@ class _GamePageState extends State<GamePage> {
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (val) {
-          if(val == stt.SpeechToText.notListeningStatus){
+          if (val == stt.SpeechToText.notListeningStatus) {
             print("notListeningStatusCondition Reached");
             stopListening();
           }
@@ -275,26 +275,39 @@ class _GamePageState extends State<GamePage> {
     await _porcupineManager.start();
   }
 
-  void parseSpeech(){
-    if(_command.length > 0){
+  void parseSpeech() {
+    if (_command.length > 0) {
       List words = _command.split(" ").map((element) {
         return convStrToNum(element.toLowerCase());
       }).toList();
-      if(words.length > 0){
-        if(words.contains("team")){
-          try{
-            int teamNum = int.parse(words[words.indexOf("team") + 1]);
-            //TODO: add one point to which ever team is said.
-          } catch (ex){
-
+      if (words.length > 0) {
+        //Add commands here
+        if (words.contains("team")) {
+          if (words[words.indexOf("team") - 1] == "subtract") {
+            try {
+              int teamNum = int.parse(words[words.indexOf("team") + 1]);
+              //TODO: Subtract one point to which ever team is said.
+            } catch (ex) {}
+          } else {
+            try {
+              int teamNum = int.parse(words[words.indexOf("team") + 1]);
+              //TODO: add one point to which ever team is said.
+            } catch (ex) {}
           }
+        }
+        if (words.contains("score")) {
+          //TODO: Announce Score?
+        }
+
+        if (words.contains("game end")) {
+          //TODO: Stop listening, end game
         }
       }
     }
   }
 
   String convStrToNum(String str) {
-    var nums = <String, String> {
+    var nums = <String, String>{
       'one': '1',
       'two': '2',
       'three': '3',
@@ -311,5 +324,4 @@ class _GamePageState extends State<GamePage> {
     }
     return str;
   }
-
 }
