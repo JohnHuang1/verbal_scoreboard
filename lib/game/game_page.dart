@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_recognition_event.dart';
 import 'package:verbal_scoreboard/game/edit_history_widget.dart';
 import 'package:verbal_scoreboard/game/jarvis_widget.dart';
 import 'package:verbal_scoreboard/game/score_widget.dart';
@@ -12,7 +14,9 @@ import 'package:porcupine/porcupine_manager.dart';
 import 'package:porcupine/porcupine_error.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:volume_control/volume_control.dart';
+import 'package:speech_to_text/speech_to_text_provider.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:async/async.dart';
 
 import '../boxes.dart';
 
@@ -36,11 +40,16 @@ class _GamePageState extends State<GamePage> {
   bool _jarvisOn = false;
   FocusNode nameFocusNode = FocusNode();
   PorcupineManager _porcupineManager;
-  stt.SpeechToText _speech;
+
+  // stt.SpeechToText _speech;
+  SpeechToTextProvider speechProvider;
+  StreamSubscription<SpeechRecognitionEvent> _subscription;
   bool _isListening = false;
-  String _command = "";
   int totalTeams = 0;
   GameData currentGame;
+  bool sttAvailable = false;
+  bool timerRunning = false;
+  CancelableOperation timeoutTimer;
 
   String _initialText;
 
@@ -50,13 +59,21 @@ class _GamePageState extends State<GamePage> {
     loadVolume();
     speechInit();
     createPorcupineManager();
-    _speech = stt.SpeechToText();
+    speechProvider = SpeechToTextProvider(stt.SpeechToText());
+    sttInit();
   }
 
   @override
   void dispose() {
     _editingController.dispose();
     _porcupineManager.delete();
+    // _speech.cancel();
+    _subscription.cancel();
+    print("test");
+    print("speechProvider has listeners? : ${speechProvider.hasListeners}");
+    speechProvider.removeListener(speechListener);
+    print("speechProvider has listeners? : ${speechProvider.hasListeners}");
+    _subscription.cancel();
     super.dispose();
   }
 
@@ -65,9 +82,28 @@ class _GamePageState extends State<GamePage> {
   }
 
   void speechInit() async {
-    // await flutterTts.setLanguage("en-GB");
     await flutterTts.setVoice({"name": "en-gb-x-gbd-local", "locale": "en-GB"});
     await flutterTts.setSpeechRate(0.7);
+  }
+
+  Future<void> sttInit() async {
+    bool available = await speechProvider.initialize();
+    _subscription = speechProvider.stream.listen((recognitionEvent) {
+      print("recognitionEvent.eventType = ${recognitionEvent.eventType}");
+      if (recognitionEvent.eventType ==
+          SpeechRecognitionEventType.finalRecognitionEvent) {
+        print("I heard: ${recognitionEvent.recognitionResult.recognizedWords}");
+        cancelNHTimer();
+        stopListening(recognitionEvent.recognitionResult.recognizedWords);
+      }
+    }, onDone: () {
+      print("subscription: OnDone called");
+    }, onError: (val) {
+      print("subscription: onError called val = $val");
+    });
+    setState(() {
+      sttAvailable = available;
+    });
   }
 
   void createPorcupineManager() async {
@@ -129,10 +165,13 @@ class _GamePageState extends State<GamePage> {
                 try {
                   speak("Hello sir.");
                   await _porcupineManager.start();
+                  // if (!sttAvailable) await sttInit();
+                  speechProvider.addListener(speechListener);
                 } on PvAudioException catch (ex) {
                   // deal with either audio exception
                 }
               } else {
+                speechProvider.removeListener(speechListener);
                 speak("Shutting systems down.");
                 await _porcupineManager.stop();
               }
@@ -263,63 +302,115 @@ class _GamePageState extends State<GamePage> {
 
   void _wakeWordCallback(int keywordIndex) async {
     vol = await VolumeControl.volume;
-    if(vol > .1) VolumeControl.setVolume(0.1);
-    await Future.delayed(Duration(milliseconds: 200), (){});
+    if (vol > .1) VolumeControl.setVolume(0.1);
+    await Future.delayed(Duration(milliseconds: 200), () {});
     if (keywordIndex == 0) {
-      _listen();
+      if ((sttAvailable || speechProvider.isListening) &&
+          speechProvider.isAvailable) _listen();
     }
   }
 
   void _listen() async {
     await _porcupineManager.stop();
-    if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (val) {
-          if (val == stt.SpeechToText.notListeningStatus) {
-            print("notListeningStatusCondition Reached");
-            _isListening = false;
-          }
-          print('onStatus: $val');
-        },
-        onError: (val) {
-          _isListening = false;
-          print('onError: $val');
-        },
-      );
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(
-          onResult: (val) {
-            _command = val.recognizedWords;
-            print("onResult = $_command");
-            if(!_isListening) stopListening();
-          },
-        );
+    speechProvider.listen(
+      listenFor: Duration(seconds: 10),
+      pauseFor: Duration(seconds: 3),
+      partialResults: false,
+    );
+    if (timerRunning) {
+      cancelNHTimer();
+    }
+    timeoutTimer = nothingHappenedTimer();
+    timeoutTimer.asStream().listen((event) {
+      print("nothingHappenedTimer event called");
+      if (_isListening) {
+        print("timer finished - stopListening called");
+        stopListening(null);
+      }
+      timerRunning = false;
+    });
+    setState(() {
+      _isListening = true;
+      print("ifAvailable: _isListening = $_isListening");
+    });
+  }
+
+  // void _onStatus(String val) {
+  //   if (val == stt.SpeechToText.notListeningStatus) {
+  //     print("notListeningStatusCondition Reached");
+  //     // setState(() {
+  //     //   _isListening = false;
+  //     //   print("onStatus: _isListening = $_isListening");
+  //     // });
+  //     _isListening = false;
+  //     print("onStatus: _isListening = $_isListening");
+  //   }
+  //   print('onStatus: $val');
+  // }
+  //
+  // void _onError(val) {
+  //   print('onError: $val');
+  //   // setState(() {
+  //   //   _isListening = false;
+  //   //   print("onError: _isListening = $_isListening");
+  //   // });
+  //   _isListening = false;
+  //   print("onError: _isListening = $_isListening");
+  //   stopListening(false);
+  // }
+
+  void stopListening(String parseString) async {
+    setState(() {
+      _isListening = false;
+      print("stopListening: SetState called");
+    });
+    VolumeControl.setVolume(vol);
+    if (parseString != null) {
+      if (!await parseSpeech(parseString)) {
+        _porcupineManager.start();
       }
     } else {
-      stopListening();
-    }
-  }
-
-  void stopListening() async {
-    setState(() => _isListening = false);
-    _speech.stop();
-    VolumeControl.setVolume(vol);
-    if(!await parseSpeech()) {
       _porcupineManager.start();
     }
-    _command = "";
   }
 
-  Future<bool> parseSpeech() async {
-    print("parseSpeech: Command = $_command");
-    if (_command.length > 0) {
-      List words = _command.split(" ").map((element) {
+  CancelableOperation nothingHappenedTimer() {
+    print("timer timerStarted");
+    timerRunning = true;
+    return CancelableOperation.fromFuture(
+        Future.delayed(const Duration(seconds: 8), () {}), onCancel: () {
+      print("timer canceled");
+    });
+  }
+
+  void cancelNHTimer(){
+    timerRunning = false;
+    timeoutTimer.cancel();
+  }
+
+  void speechListener() {
+    print("addListener: -----------------------");
+    print(
+        "addListener: speechProvider.isNotListening = ${speechProvider.isNotListening}");
+    if (speechProvider.hasError && speechProvider.isNotListening) {
+      print(
+          "addListener: speechProvider.lastError = ${speechProvider.lastError}");
+      stopListening(null);
+      timeoutTimer.cancel();
+    } else {
+      print("addListener: has no error ");
+    }
+  }
+
+  Future<bool> parseSpeech(parseString) async {
+    print("parseSpeech: Command = $parseString");
+    if (parseString.length > 0) {
+      List words = parseString.split(" ").map((element) {
         return convStrToNum(element.toLowerCase());
       }).toList();
       print("parseSpeech: words = ${words.toString()}");
       if (words.length > 0) {
-        if (words.contains("team")) {
+        if (words.contains("team") && words.last != "team") {
           // add/subtract 1 point
           print("add/subtract reached");
           try {
@@ -339,9 +430,9 @@ class _GamePageState extends State<GamePage> {
             } else {
               throw Exception("Team number not in range");
             }
-          } catch (ex) {
-            print((ex as Exception).toString());
-            await speak((ex as Exception).toString());
+          } on Exception catch (ex) {
+            print(ex.toString().replaceAll("Exception: ", ""));
+            await speak(ex.toString().replaceAll("exception", ""));
             return false;
           }
         } else if (words.contains("score")) {
@@ -359,13 +450,11 @@ class _GamePageState extends State<GamePage> {
           print("Choose random team");
           int teamNum = random.nextInt(totalTeams) + 1;
           await speak("team $teamNum has been chosen");
-        } else if (words.contains("end")) {
-          //TODO: Do we really need this?
-          // if (words[words.indexOf("end") + 1] == "game") {}
-        } else if(words.contains("shut")){
+        } else if (words.contains("shut") && words.contains("down")) {
           // Shutdown jarvis
-          print("Shutdown jarvis");
-          if(words[words.indexOf("shut") + 1] == "down"){
+          if (words.length > words.indexOf("shut") + 1 &&
+              words[words.indexOf("shut") + 1] == "down") {
+            speechProvider.removeListener(speechListener);
             print("Shutdown jarvis 2");
             await speak("Shutting systems down");
             setState(() {
@@ -373,8 +462,7 @@ class _GamePageState extends State<GamePage> {
             });
             return true;
           }
-        }
-        else {
+        } else {
           // Catch all didn't understands
           print("Catch all didn't understands");
           await speak("What did you say sir?");
