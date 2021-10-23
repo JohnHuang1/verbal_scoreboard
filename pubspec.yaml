@@ -28,10 +28,20 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  intl: ^0.17.0
+  hive: ^2.0.4
+  hive_flutter: ^1.1.0
+  speech_to_text: ^4.2.0
+  flutter_tts: ^3.2.1
+  volume_control: ^0.1.5
+  async: ^2.6.1
 
 dev_dependencies:
+  build_runner: ^2.0.5
   flutter_test:
     sdk: flutter
+  hive_generator: ^1.1.0
+  porcupine: ^1.9.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -71,6 +81,12 @@ flutter:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
-  #
+  fonts:
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+          weight: 300
+        - asset: assets/fonts/Montserrat-Bold.ttf
+          weight: 600
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

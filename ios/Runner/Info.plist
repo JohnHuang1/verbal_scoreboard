@@ -26,6 +26,10 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech Recognition is required</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone is required to record audio</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -41,5 +45,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-</dict>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Recognize and display speech input</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Detect speech input</string>
 </plist>
